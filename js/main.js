@@ -11,7 +11,7 @@ const PRODUCT = {
   id: 'serum-01',
   name: 'Radiant Glow Serum',
   price: 48.00,
-  img: 'image-video/amaze.jpeg'
+  img: 'images-video/amaze.jpeg'
 };
 
 /* ---------- TOAST ---------- */
@@ -234,7 +234,7 @@ function initHeroVideo() {
 
   // Handle load errors gracefully
   video.addEventListener('error', () => {
-    console.error('Video failed to load. Check that image-video/Amaze.mp4 exists and is H.264-encoded.');
+    console.error('Video failed to load. Check that images-video/Amaze.mp4 exists and is H.264-encoded.');
     video.style.display = 'none';
   });
 
