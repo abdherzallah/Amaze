@@ -18,9 +18,22 @@
   <div class="success-modal">
     <div class="check-icon"><i class="fas fa-check"></i></div>
     <h2 data-i18n="cartPage.orderPlaced">Order Placed!</h2>
-    <div class="order-id" id="successOrderId">#AMZ-001</div>
+
+    <div class="success-divider">
+      <span></span>
+      <i class="fas fa-spa"></i>
+      <span></span>
+    </div>
+
     <p data-i18n="cartPage.thankYou">Thank you for your purchase! Your order has been confirmed.</p>
-    <a href="index.html" class="btn-continue"><i class="fas fa-home"></i> <span data-i18n="cartPage.continueShopping">Continue Shopping</span></a>
+    <p class="success-note">We'll send you an update as soon as your order ships.</p>
+
+    <span id="successOrderId" style="display:none;"></span>
+
+    <a href="index.html" class="btn-continue">
+      <i class="fas fa-home"></i>
+      <span data-i18n="cartPage.continueShopping">Continue Shopping</span>
+    </a>
   </div>
 </div>
 
@@ -75,10 +88,9 @@
         <div class="checkout-sidebar" id="checkoutSidebar">
           <h3><i class="fas fa-credit-card"></i> <span data-i18n="cartPage.checkout">Checkout</span></h3>
 
-          <!-- PAYMENT METHODS — pure CSS logos -->
+          <!-- PAYMENT METHODS -->
           <div class="payment-methods">
 
-            <!-- VISA -->
             <div class="payment-method active" data-method="visa" title="Visa">
               <span class="check-mark"><i class="fas fa-check"></i></span>
               <div class="method-logo visa-logo">
@@ -87,7 +99,6 @@
               <span class="method-name" data-i18n="cartPage.credit">Credit / Debit</span>
             </div>
 
-            <!-- MASTERCARD -->
             <div class="payment-method" data-method="mastercard" title="Mastercard">
               <span class="check-mark"><i class="fas fa-check"></i></span>
               <div class="method-logo mc-logo">
@@ -97,7 +108,6 @@
               <span class="method-name" data-i18n="cartPage.credit">Credit / Debit</span>
             </div>
 
-            <!-- PAYPAL -->
             <div class="payment-method" data-method="paypal" title="PayPal">
               <span class="check-mark"><i class="fas fa-check"></i></span>
               <div class="method-logo pp-logo">
@@ -108,16 +118,14 @@
               <span class="method-name" data-i18n="cartPage.online">Online Payment</span>
             </div>
 
-            <!-- APPLE PAY -->
-            <!-- APPLE PAY -->
-<div class="payment-method" data-method="applepay" title="Apple Pay">
-  <span class="check-mark"><i class="fas fa-check"></i></span>
-  <div class="method-logo ap-logo">
-    <i class="fab fa-apple ap-apple-icon"></i>
-    <span class="ap-text">Pay</span>
-  </div>
-  <span class="method-name" data-i18n="cartPage.wallet">Digital Wallet</span>
-</div>
+            <div class="payment-method" data-method="applepay" title="Apple Pay">
+              <span class="check-mark"><i class="fas fa-check"></i></span>
+              <div class="method-logo ap-logo">
+                <i class="fab fa-apple ap-apple-icon"></i>
+                <span class="ap-text">Pay</span>
+              </div>
+              <span class="method-name" data-i18n="cartPage.wallet">Digital Wallet</span>
+            </div>
 
           </div>
 
@@ -170,8 +178,37 @@
               </div>
             </div>
 
+            <!-- ============ DISCOUNT CODE ============ -->
+            <div class="discount-section">
+              <label class="discount-label" for="discountInput">
+                <i class="fas fa-tag"></i>
+                <span>Discount Code</span>
+              </label>
+              <div class="discount-row">
+                <input
+                  type="text"
+                  id="discountInput"
+                  placeholder="Enter code (e.g. AMAZE20)"
+                  autocomplete="off"
+                  maxlength="30"
+                />
+                <button type="button" id="applyDiscountBtn" class="btn-apply-discount">
+                  Apply
+                </button>
+                <button type="button" id="removeDiscountBtn" class="btn-remove-discount" title="Remove code" aria-label="Remove code">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="discountMsg" class="discount-msg"></div>
+            </div>
+
+            <!-- ============ TOTALS ============ -->
             <div class="order-totals">
               <div class="row"><span data-i18n="cartPage.subtotal">Subtotal</span><span id="subtotal">$0.00</span></div>
+              <div class="row discount-row-total" id="discountRow" style="display:none;">
+                <span><i class="fas fa-tag"></i> <span id="discountCodeLabel"></span></span>
+                <span id="discountValue">-$0.00</span>
+              </div>
               <div class="row"><span data-i18n="cartPage.shipping">Shipping</span><span data-i18n="cartPage.free">Free</span></div>
               <div class="row"><span data-i18n="cartPage.tax">Tax (8%)</span><span id="tax">$0.00</span></div>
               <div class="row total"><span data-i18n="cartPage.total">Total</span><span class="amount" id="totalAmount">$0.00</span></div>

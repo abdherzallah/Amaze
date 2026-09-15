@@ -14,28 +14,46 @@ function setData(key, value) {
    ============================================ */
 let cart = getData('amaze_cart', []);
 let currentUser = getData('amaze_current_user', null);
+let appliedDiscount = null;
+try {
+  const saved = localStorage.getItem('amaze_discount');
+  if (saved) appliedDiscount = JSON.parse(saved);
+} catch (e) { appliedDiscount = null; }
 
 /* ============================================
    DOM REFS
    ============================================ */
-const cartItemsList = document.getElementById('cartItemsList');
-const itemCount = document.getElementById('itemCount');
-const cartBadge = document.getElementById('cartBadge');
-const subtotalEl = document.getElementById('subtotal');
-const taxEl = document.getElementById('tax');
-const totalEl = document.getElementById('totalAmount');
-const emptyCart = document.getElementById('emptyCart');
-const cartContent = document.getElementById('cartContent');
+const cartItemsList    = document.getElementById('cartItemsList');
+const itemCount        = document.getElementById('itemCount');
+const cartBadge        = document.getElementById('cartBadge');
+const subtotalEl       = document.getElementById('subtotal');
+const taxEl            = document.getElementById('tax');
+const totalEl          = document.getElementById('totalAmount');
+const emptyCart        = document.getElementById('emptyCart');
+const cartContent      = document.getElementById('cartContent');
 const navUserContainer = document.getElementById('navUserContainer');
 
 /* ============================================
-   TOAST (uses translated strings)
+   IMAGE PATH NORMALIZER
+   ============================================ */
+function fixImgPath(img) {
+  if (!img) return '';
+  return img.replace(/(^|\/)image-video\//, '$1images-video/');
+}
+
+/* ============================================
+   PHONE NORMALIZER
+   ============================================ */
+function normalizePhone(phone) {
+  return String(phone || '').replace(/[\s\-\(\)\.]/g, '');
+}
+
+/* ============================================
+   TOAST
    ============================================ */
 function showToast(messageOrKey, type = 'success') {
   const toast = document.getElementById('toast');
   if (!toast) return;
-
-  // If the string matches a translation key, translate it; otherwise show as-is
   let msg = messageOrKey;
   if (window.LanguageManager && typeof messageOrKey === 'string') {
     const translated = LanguageManager.t(messageOrKey);
@@ -48,7 +66,7 @@ function showToast(messageOrKey, type = 'success') {
 }
 
 /* ============================================
-   NAVBAR USER (only shows if a user logged in earlier)
+   NAVBAR USER
    ============================================ */
 function updateNavbar() {
   currentUser = JSON.parse(localStorage.getItem('amaze_current_user') || 'null');
@@ -96,11 +114,16 @@ function renderCart() {
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     subtotal += itemTotal;
+    const safeImg = fixImgPath(item.img) || 'images-video/amaze.jpeg';
 
     html += `
       <div class="cart-item" data-index="${index}">
         <div class="item-info">
-          <img src="${item.img || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'64\'%3E%3Crect width=\'64\' height=\'64\' fill=\'%23faf3ef\'/%3E%3Ccircle cx=\'32\' cy=\'32\' r=\'22\' fill=\'%23dbb8ab\'/%3E%3Ccircle cx=\'32\' cy=\'32\' r=\'14\' fill=\'%23b45f4b\' opacity=\'0.3\'/%3E%3C/svg%3E'}" alt="${item.name}">
+          <img
+            src="${safeImg}"
+            alt="${item.name}"
+            onerror="this.onerror=null;this.src='images-video/amaze.jpeg'"
+          >
           <div class="details">
             <div class="name">${item.name}</div>
             <div class="price">$${item.price.toFixed(2)} ${eachText}</div>
@@ -121,18 +144,37 @@ function renderCart() {
 
   cartItemsList.innerHTML = html;
 
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
+  /* --- Totals with discount --- */
+  const discountAmount = appliedDiscount ? Number(appliedDiscount.discount_amount) || 0 : 0;
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const tax = discountedSubtotal * 0.08;
+  const total = discountedSubtotal + tax;
 
+  /* --- Discount UI row --- */
+  const discountRow       = document.getElementById('discountRow');
+  const discountValueEl   = document.getElementById('discountValue');
+  const discountCodeLabel = document.getElementById('discountCodeLabel');
+
+  if (discountRow && discountValueEl && discountCodeLabel) {
+    if (appliedDiscount) {
+      discountRow.style.display = 'flex';
+      discountValueEl.textContent = '-$' + discountAmount.toFixed(2);
+      discountCodeLabel.textContent = appliedDiscount.code;
+    } else {
+      discountRow.style.display = 'none';
+    }
+  }
+
+  /* --- Totals display --- */
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
   const singular = window.LanguageManager ? LanguageManager.t('cartPage.itemSingular') : 'item';
-  const plural = window.LanguageManager ? LanguageManager.t('cartPage.itemPlural') : 'items';
+  const plural   = window.LanguageManager ? LanguageManager.t('cartPage.itemPlural')   : 'items';
   if (itemCount) itemCount.textContent = totalItems + ' ' + (totalItems === 1 ? singular : plural);
   if (cartBadge) cartBadge.textContent = totalItems;
 
   if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
-  if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
-  if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+  if (taxEl)      taxEl.textContent      = '$' + tax.toFixed(2);
+  if (totalEl)    totalEl.textContent    = '$' + total.toFixed(2);
 }
 
 /* ============================================
@@ -191,39 +233,152 @@ document.getElementById('cvv')?.addEventListener('input', function () {
 });
 
 /* ============================================
-   PLACE ORDER — NO LOGIN REQUIRED
+   DISCOUNT CODE — once per customer (by phone)
+   ============================================ */
+function validateDiscount(code, subtotal, phone) {
+  const discounts = getData('amaze_discounts', []);
+  const d = discounts.find(x => x.code.toUpperCase() === code.toUpperCase());
+
+  if (!d) return { ok: false, error: 'Invalid discount code' };
+  if (!d.is_active) return { ok: false, error: 'This code is no longer active' };
+  if (d.expires_at && new Date(d.expires_at) < new Date()) {
+    return { ok: false, error: 'This code has expired' };
+  }
+  if (d.max_uses && d.uses_count >= d.max_uses) {
+    return { ok: false, error: 'This code has reached its usage limit' };
+  }
+
+  // Block if this phone has already used this code
+  const phoneKey = normalizePhone(phone);
+  if (phoneKey && Array.isArray(d.used_by) && d.used_by.includes(phoneKey)) {
+    return { ok: false, error: 'You have already used this code' };
+  }
+
+  const value = Number(d.discount_value);
+  const amount = d.discount_type === 'percent'
+    ? Math.round(subtotal * value) / 100
+    : Math.min(value, subtotal);
+
+  return {
+    ok: true,
+    discount: {
+      id: d.id,
+      code: d.code,
+      type: d.discount_type,
+      value: value,
+      discount_amount: Number(amount.toFixed(2))
+    }
+  };
+}
+
+function applyDiscount() {
+  const input = document.getElementById('discountInput');
+  const msg   = document.getElementById('discountMsg');
+  const code  = (input?.value || '').trim().toUpperCase();
+  const phone = document.getElementById('phone')?.value || '';
+
+  if (!code) {
+    if (msg) { msg.textContent = 'Please enter a code'; msg.style.color = '#b45f4b'; }
+    return;
+  }
+
+  const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const result = validateDiscount(code, subtotal, phone);
+
+  if (!result.ok) {
+    if (msg) { msg.textContent = '✗ ' + result.error; msg.style.color = '#b45f4b'; }
+    appliedDiscount = null;
+    localStorage.removeItem('amaze_discount');
+    renderCart();
+    return;
+  }
+
+  appliedDiscount = result.discount;
+  localStorage.setItem('amaze_discount', JSON.stringify(appliedDiscount));
+
+  if (msg) {
+    msg.textContent = `✓ Code "${appliedDiscount.code}" applied — you save $${appliedDiscount.discount_amount.toFixed(2)}`;
+    msg.style.color = '#2d7d46';
+  }
+  renderCart();
+}
+
+document.getElementById('applyDiscountBtn')?.addEventListener('click', applyDiscount);
+document.getElementById('discountInput')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); applyDiscount(); }
+});
+
+document.getElementById('removeDiscountBtn')?.addEventListener('click', () => {
+  appliedDiscount = null;
+  localStorage.removeItem('amaze_discount');
+  const input = document.getElementById('discountInput');
+  const msg   = document.getElementById('discountMsg');
+  if (input) input.value = '';
+  if (msg)   msg.textContent = '';
+  renderCart();
+});
+
+/* ============================================
+   PLACE ORDER
    ============================================ */
 document.getElementById('paymentForm')?.addEventListener('submit', function (e) {
   e.preventDefault();
 
-  const fullName = document.getElementById('fullName').value.trim();
-  const address = document.getElementById('address').value.trim();
-  const city = document.getElementById('city').value.trim();
+  const fullName   = document.getElementById('fullName').value.trim();
+  const address    = document.getElementById('address').value.trim();
+  const city       = document.getElementById('city').value.trim();
   const postalCode = document.getElementById('postalCode').value.trim();
-  const country = document.getElementById('country').value.trim();
-  const phone = document.getElementById('phone').value.trim();
+  const country    = document.getElementById('country').value.trim();
+  const phone      = document.getElementById('phone').value.trim();
   const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
-  const expiry = document.getElementById('expiry').value;
-  const cvv = document.getElementById('cvv').value;
+  const expiry     = document.getElementById('expiry').value;
+  const cvv        = document.getElementById('cvv').value;
 
   const errMsg = window.LanguageManager
     ? LanguageManager.t('toast.fillAllFields')
     : 'Please fill in all required fields correctly';
 
-  if (fullName.length < 2) return showToast(errMsg, 'error');
-  if (address.length < 3) return showToast(errMsg, 'error');
-  if (city.length < 2) return showToast(errMsg, 'error');
-  if (postalCode.length < 2) return showToast(errMsg, 'error');
-  if (country.length < 2) return showToast(errMsg, 'error');
-  if (phone.length < 6) return showToast(errMsg, 'error');
+  if (fullName.length < 2)    return showToast(errMsg, 'error');
+  if (address.length < 3)     return showToast(errMsg, 'error');
+  if (city.length < 2)        return showToast(errMsg, 'error');
+  if (postalCode.length < 2)  return showToast(errMsg, 'error');
+  if (country.length < 2)     return showToast(errMsg, 'error');
+  if (phone.length < 6)       return showToast(errMsg, 'error');
   if (cardNumber.length < 16) return showToast(errMsg, 'error');
-  if (expiry.length < 5) return showToast(errMsg, 'error');
-  if (cvv.length < 3) return showToast(errMsg, 'error');
+  if (expiry.length < 5)      return showToast(errMsg, 'error');
+  if (cvv.length < 3)         return showToast(errMsg, 'error');
 
+  /* --- Compute subtotal --- */
   let subtotal = 0;
   cart.forEach(item => { subtotal += item.price * item.quantity; });
-  const tax = subtotal * 0.08;
-  const grandTotal = subtotal + tax;
+
+  let discountAmount = 0;
+  let discountCode   = null;
+
+  /* --- Re-validate discount with the phone the customer just typed --- */
+  if (appliedDiscount) {
+    const check = validateDiscount(appliedDiscount.code, subtotal, phone);
+
+    if (!check.ok) {
+      appliedDiscount = null;
+      localStorage.removeItem('amaze_discount');
+
+      if (check.error.toLowerCase().includes('already used')) {
+        showToast('❌ You have already used this discount code', 'error');
+      } else {
+        showToast('❌ ' + check.error, 'error');
+      }
+      renderCart();
+      return;
+    }
+
+    discountAmount = check.discount.discount_amount;
+    discountCode   = check.discount.code;
+  }
+
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const tax = discountedSubtotal * 0.08;
+  const grandTotal = discountedSubtotal + tax;
 
   const customerName = fullName;
   const orders = getData('amaze_orders', []);
@@ -233,20 +388,44 @@ document.getElementById('paymentForm')?.addEventListener('submit', function (e) 
     customer: customerName,
     email: 'guest@example.com',
     fullName, address, city, postalCode, country, phone,
-    total: grandTotal,
+    subtotal: Number(subtotal.toFixed(2)),
+    discount_code: discountCode,
+    discount_amount: Number(discountAmount.toFixed(2)),
+    tax: Number(tax.toFixed(2)),
+    total: Number(grandTotal.toFixed(2)),
     date: new Date().toLocaleDateString(),
     status: 'completed',
     paymentMethod: document.querySelector('.payment-method.active').dataset.method,
-    items: cart.map(item => ({ name: item.name, quantity: item.quantity, price: item.price }))
+    items: cart.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price
+    }))
   };
 
   orders.push(order);
   setData('amaze_orders', orders);
 
+  /* --- Record who used the discount --- */
+  if (discountCode) {
+    const discounts = getData('amaze_discounts', []);
+    const d = discounts.find(x => x.code === discountCode);
+    if (d) {
+      d.uses_count = (d.uses_count || 0) + 1;
+      if (!Array.isArray(d.used_by)) d.used_by = [];
+      const phoneKey = normalizePhone(phone);
+      if (phoneKey && !d.used_by.includes(phoneKey)) {
+        d.used_by.push(phoneKey);
+      }
+      setData('amaze_discounts', discounts);
+    }
+  }
+
+  /* --- Update clients --- */
   const clients = getData('amaze_clients', []);
-  const existingClient = clients.find(c => c.name === customerName);
-  if (existingClient) {
-    existingClient.orders = (existingClient.orders || 0) + 1;
+  const existing = clients.find(c => c.name === customerName);
+  if (existing) {
+    existing.orders = (existing.orders || 0) + 1;
   } else {
     clients.push({
       name: customerName,
@@ -266,6 +445,8 @@ document.getElementById('paymentForm')?.addEventListener('submit', function (e) 
   setTimeout(() => {
     cart = [];
     setData('amaze_cart', cart);
+    appliedDiscount = null;
+    localStorage.removeItem('amaze_discount');
 
     document.getElementById('successOrderId').textContent = '#' + order.id;
     document.getElementById('successOverlay').classList.add('active');
@@ -279,7 +460,7 @@ document.getElementById('paymentForm')?.addEventListener('submit', function (e) 
 });
 
 /* ============================================
-   RE-RENDER CART WHEN LANGUAGE CHANGES
+   RE-RENDER ON LANGUAGE CHANGE
    ============================================ */
 window.addEventListener('languageChanged', () => {
   renderCart();
@@ -295,4 +476,14 @@ if (window.LanguageManager && typeof LanguageManager.init === 'function') {
   LanguageManager.init();
 }
 
-console.log('✨ AMAZE Cart Page Loaded (guest checkout enabled)');
+/* ============================================
+   SECRET ADMIN SHORTCUT
+   ============================================ */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+    e.preventDefault();
+    window.location.href = 'admin.html';
+  }
+});
+
+console.log('✨ AMAZE Cart Page Loaded (per-customer discounts)');

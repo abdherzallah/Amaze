@@ -12,21 +12,22 @@
 </head>
 <body>
 
-  <body>
-
-<!-- ADMIN AUTH GUARD -->
 <script>
   (function () {
-    const user = JSON.parse(localStorage.getItem('amaze_current_user') || 'null');
-    if (!user || !user.isAdmin) {
-      // Not admin → go to login page
-      window.location.replace('admin-login.html');
+    const ADMIN_PASSWORD = 'amaze2025';
+    const SESSION_KEY = 'amaze_admin_ok';
+
+    if (sessionStorage.getItem(SESSION_KEY) === 'true') return;
+
+    const entered = prompt('🔒 Enter admin password:');
+    if (entered === ADMIN_PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, 'true');
+    } else {
+      alert('Access denied.');
+      window.location.href = 'index.html';
     }
   })();
 </script>
-
-<div class="toast" id="toast"></div>
-...
 
 <div class="toast" id="toast"></div>
 
@@ -44,10 +45,12 @@
       <li><a href="#" data-page="inventory"><i class="fas fa-boxes"></i> <span>Inventory</span></a></li>
       <li><a href="#" data-page="stock"><i class="fas fa-warehouse"></i> <span>Stock Alerts</span> <span class="badge" id="stockBadge">0</span></a></li>
       <li><a href="#" data-page="reviews"><i class="fas fa-star"></i> <span>Reviews</span> <span class="badge" id="reviewBadge">0</span></a></li>
+      <li><a href="#" data-page="discounts"><i class="fas fa-tags"></i> <span>Discounts</span></a></li>
     </ul>
 
     <div class="sidebar-footer">
       <a href="index.html"><i class="fas fa-arrow-left"></i> <span>Back to Website</span></a>
+      <a href="javascript:void(0)" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
     </div>
   </aside>
 
@@ -130,9 +133,107 @@
         </div>
       </div>
     </section>
+
+    <section class="section-card" id="discountsSection">
+      <div class="section-header">
+        <h3><i class="fas fa-tags"></i> Discount Codes</h3>
+        <button class="btn-sm" onclick="openDiscountModal()">+ New Code</button>
+      </div>
+      <div id="discountsContainer">
+        <div class="empty-state">
+          <i class="fas fa-tags"></i>
+          <p>No discount codes yet</p>
+          <span>Click "+ New Code" to create your first one</span>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
+<!-- DISCOUNT MODAL -->
+<div class="modal-overlay" id="discountModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeDiscountModal()">&times;</button>
+
+    <h2 id="discountModalTitle">New Discount Code</h2>
+    <p class="sub">Create a code customers can apply at checkout.</p>
+
+    <div class="form-group">
+      <label><i class="fas fa-hashtag"></i> Code <span class="required">*</span></label>
+      <input
+        type="text"
+        id="dcCode"
+        placeholder="e.g. AMAZE20"
+        maxlength="20"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+      />
+      <small class="field-hint">Letters &amp; numbers only. Shown to the customer at checkout.</small>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-sliders-h"></i> Type</label>
+        <select id="dcType">
+          <option value="percent">Percentage (%)</option>
+          <option value="fixed">Fixed amount ($)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-coins"></i> Value <span class="required">*</span></label>
+        <div class="value-input-wrap">
+          <input type="number" id="dcValue" min="0" step="0.01" placeholder="20" inputmode="decimal" />
+          <span class="value-suffix" id="dcValueSuffix">%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-fills" id="quickFills">
+      <button type="button" onclick="quickFill(5)">5%</button>
+      <button type="button" onclick="quickFill(10)">10%</button>
+      <button type="button" onclick="quickFill(15)">15%</button>
+      <button type="button" onclick="quickFill(20)">20%</button>
+      <button type="button" onclick="quickFill(25)">25%</button>
+      <button type="button" onclick="quickFill(30)">30%</button>
+      <button type="button" onclick="quickFill(50)">50%</button>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><i class="fas fa-redo"></i> Max Uses</label>
+        <input type="number" id="dcMaxUses" min="1" placeholder="Blank = unlimited" />
+        <small class="field-hint">How many times this code can be used.</small>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-calendar"></i> Expires</label>
+        <input type="date" id="dcExpires" />
+        <small class="field-hint">Leave blank = never expires.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="switch-row">
+        <input type="checkbox" id="dcActive" checked />
+        <span class="switch"></span>
+        <span class="switch-label">Active (customers can use it immediately)</span>
+      </label>
+    </div>
+
+    <div class="discount-preview" id="discountPreview">
+      <span class="preview-label"><i class="fas fa-eye"></i> Preview</span>
+      <div class="preview-body">
+        <span class="preview-code" id="previewCode">YOURCODE</span>
+        <span class="preview-value" id="previewValue">0% off</span>
+      </div>
+    </div>
+
+    <button class="btn-modal" onclick="saveDiscount()">
+      <i class="fas fa-save"></i> Create Discount
+    </button>
+  </div>
+</div>
 
 <script src="js/admin.js"></script>
 </body>

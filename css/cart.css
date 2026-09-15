@@ -1,6 +1,6 @@
 /* ============================================================
    AMAZE · cart.css
-   Cart page + modern pure-CSS payment logos
+   Cart page + modern pure-CSS payment logos + discount styling
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -382,7 +382,7 @@ html[dir="rtl"] .payment-method .check-mark {
 }
 
 /* ============================================================
-   PAYMENT LOGOS — pure CSS, no images, no SVGs
+   PAYMENT LOGOS
    ============================================================ */
 .payment-method .method-logo {
   height: 32px;
@@ -394,7 +394,7 @@ html[dir="rtl"] .payment-method .check-mark {
 }
 .payment-method:hover .method-logo { transform: scale(1.06); }
 
-/* ---------- VISA (styled wordmark) ---------- */
+/* VISA */
 .payment-method .visa-logo .visa-text {
   font-family: 'Arial Black', 'Helvetica Neue', Impact, sans-serif;
   font-size: 22px;
@@ -409,7 +409,7 @@ html[dir="rtl"] .payment-method .check-mark {
   padding: 0 2px;
 }
 
-/* ---------- MASTERCARD (two overlapping circles) ---------- */
+/* MASTERCARD */
 .payment-method .mc-logo {
   position: relative;
   width: 40px;
@@ -423,17 +423,10 @@ html[dir="rtl"] .payment-method .check-mark {
   border-radius: 50%;
   display: block;
 }
-.payment-method .mc-logo .mc-circle.red {
-  left: 0;
-  background: #EB001B;
-}
-.payment-method .mc-logo .mc-circle.yellow {
-  right: 0;
-  background: #F79E1B;
-  mix-blend-mode: multiply;
-}
+.payment-method .mc-logo .mc-circle.red    { left: 0;  background: #EB001B; }
+.payment-method .mc-logo .mc-circle.yellow { right: 0; background: #F79E1B; mix-blend-mode: multiply; }
 
-/* ---------- PAYPAL (styled wordmark) ---------- */
+/* PAYPAL */
 .payment-method .pp-logo .pp-text {
   font-family: 'Verdana', 'Helvetica Neue', Arial, sans-serif;
   font-size: 15px;
@@ -446,44 +439,27 @@ html[dir="rtl"] .payment-method .check-mark {
 .payment-method .pp-logo .pp-blue  { color: #003087; }
 .payment-method .pp-logo .pp-light { color: #009CDE; }
 
-/* ---------- APPLE PAY (icon + wordmark) ---------- */
+/* APPLE PAY */
 .payment-method .ap-logo {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+}
+.payment-method .ap-logo .ap-apple-icon {
+  font-size: 20px;
+  color: #000;
+  line-height: 1;
+  position: relative;
+  top: -2px;
 }
 .payment-method .ap-logo .ap-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 17px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.5px;
   color: #000;
   line-height: 1;
-}
-.payment-method .ap-logo .ap-apple {
-  position: relative;
-  width: 12px;
-  height: 15px;
-  display: inline-block;
-}
-.payment-method .ap-logo .ap-apple::before {
-  content: "";
-  position: absolute;
-  top: 1px; left: 2px;
-  width: 9px;
-  height: 13px;
-  background: #000;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-}
-.payment-method .ap-logo .ap-apple::after {
-  content: "";
-  position: absolute;
-  top: -2px; left: 6px;
-  width: 3px;
-  height: 5px;
-  background: #000;
-  border-radius: 50% 50% 0 0;
-  transform: rotate(20deg);
+  margin-left: -1px;
 }
 
 /* ---------- FORM FIELDS ---------- */
@@ -533,6 +509,143 @@ html[dir="rtl"] .payment-method .check-mark {
   gap: 6px;
 }
 
+/* ============================================================
+   DISCOUNT CODE — checkout (styled)
+   ============================================================ */
+.discount-section {
+  margin: 18px 0 18px;
+  padding: 16px 16px 14px;
+  background: #faf6f2;
+  border: 1px dashed rgba(180, 95, 75, 0.35);
+  border-radius: 16px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.discount-section:hover {
+  border-color: rgba(180, 95, 75, 0.55);
+  background: #fdfaf7;
+}
+
+.discount-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45f4b;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  user-select: none;
+}
+.discount-label i { font-size: 12px; color: #b45f4b; }
+
+.discount-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.discount-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 16px;
+  border: 1px solid #e8e0da;
+  border-radius: 30px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  color: #2d2a24;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.discount-row input::placeholder {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: #b8aca0;
+}
+.discount-row input:hover { border-color: #dbb8ab; }
+.discount-row input:focus {
+  border-color: #b45f4b;
+  box-shadow: 0 0 0 4px rgba(180, 95, 75, 0.10);
+}
+
+.btn-apply-discount {
+  padding: 0 22px;
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #b45f4b, #9f4f3d);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px -4px rgba(180, 95, 75, 0.45);
+  white-space: nowrap;
+}
+.btn-apply-discount:hover {
+  background: linear-gradient(135deg, #a85544, #8a3f2f);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(180, 95, 75, 0.55);
+}
+.btn-apply-discount:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px -2px rgba(180, 95, 75, 0.5);
+}
+
+.btn-remove-discount {
+  width: 42px;
+  padding: 0;
+  border: 1px solid #e8e0da;
+  border-radius: 30px;
+  background: #fff;
+  color: #b45f4b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.btn-remove-discount:hover {
+  background: rgba(180, 95, 75, 0.08);
+  border-color: #b45f4b;
+  transform: translateY(-1px);
+}
+.btn-remove-discount:active { transform: translateY(0); }
+
+.discount-msg {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  min-height: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.discount-msg:empty {
+  margin-top: 0;
+  min-height: 0;
+}
+.discount-msg[style*="#2d7d46"] {
+  padding: 8px 12px;
+  background: rgba(45, 125, 70, 0.08);
+  border-radius: 10px;
+}
+.discount-msg[style*="#b45f4b"] {
+  padding: 8px 12px;
+  background: rgba(180, 95, 75, 0.08);
+  border-radius: 10px;
+}
+
 /* ---------- ORDER TOTALS ---------- */
 .order-totals {
   border-top: 2px solid rgba(180, 95, 75, 0.08);
@@ -555,6 +668,30 @@ html[dir="rtl"] .payment-method .check-mark {
   margin-top: 6px;
 }
 .order-totals .row.total .amount { color: #b45f4b; }
+
+/* Discount row inside totals */
+.order-totals .discount-row-total {
+  color: #2d7d46;
+  background: rgba(45, 125, 70, 0.06);
+  padding: 8px 12px !important;
+  border-radius: 10px;
+  margin: 6px 0;
+  font-weight: 600;
+}
+.order-totals .discount-row-total span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.order-totals .discount-row-total span:first-child i {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.order-totals .discount-row-total span:last-child {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
 
 /* ---------- PLACE ORDER BUTTON ---------- */
 .btn-place-order {
@@ -727,10 +864,16 @@ html[dir="rtl"] .payment-method .check-mark {
   .payment-method .mc-logo .mc-circle { width: 22px; height: 22px; }
   .payment-method .pp-logo .pp-text { font-size: 13px; }
   .payment-method .ap-logo .ap-text { font-size: 15px; }
-  .payment-method .ap-logo .ap-apple { width: 10px; height: 13px; }
+  .payment-method .ap-logo .ap-apple-icon { font-size: 17px; }
   .payment-method .method-name { font-size: 10px; }
   .payment-method .check-mark { width: 18px; height: 18px; font-size: 9px; }
   .cart-item .item-info img { width: 48px; height: 48px; }
   .cart-item .item-info .details .name { font-size: 13px; }
   .success-modal { padding: 28px 16px 24px; }
+
+  /* Discount section on mobile */
+  .discount-row { flex-wrap: wrap; }
+  .discount-row input { flex: 1 1 100%; order: 1; }
+  .btn-apply-discount { flex: 1; order: 2; padding: 11px 20px; }
+  .btn-remove-discount { order: 3; height: 42px; }
 }
