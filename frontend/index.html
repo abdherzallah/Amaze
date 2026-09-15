@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AMAZE · Premium Cosmetics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar-fixed">
+  <div class="container nav-container">
+    <a href="index.html" class="logo">
+      <i class="fas fa-spa"></i>
+      <span>AMAZE</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="index.html" class="active"><i class="fas fa-home"></i> <span data-i18n="nav.home">Home</span></a>
+      <a href="javascript:void(0)" id="aboutLink"><i class="fas fa-info-circle"></i> <span data-i18n="nav.about">About</span></a>
+      <div id="navUserContainer"></div>
+    </div>
+
+    <div class="nav-actions">
+      <div class="lang-selector">
+        <i class="fas fa-globe globe-icon"></i>
+        <select id="languageSelector" onchange="LanguageManager.changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ar">العربية</option>
+        </select>
+        <i class="fas fa-chevron-down chevron-icon"></i>
+      </div>
+
+      <button class="btn-cart-icon" id="cartToggleBtn">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- VIDEO HERO -->
+<section class="video-hero" id="videoHero">
+  <video
+    class="bg-video"
+    id="bgVideo"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    disablepictureinpicture
+    controlslist="nodownload"
+  >
+    <source src="image-video/Amaze.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Fallback background (visible if video fails to load) -->
+  <div class="video-fallback"></div>
+
+  <div class="video-overlay"></div>
+  <div class="amaze-on-video">AMAZE</div>
+
+  <div class="video-content">
+    <div class="container">
+      <div class="hero-text-on-video">
+        <span class="badge"><i class="fas fa-leaf"></i> <span data-i18n="hero.badge">Clean &amp; Simple</span></span>
+        <h1 data-i18n="hero.title">Discover Your <span>Radiance</span></h1>
+        <p data-i18n="hero.subtitle">Pure water. Pure skin. Pure AMAZE.</p>
+
+        <div class="hero-buttons">
+          <button class="btn-primary" id="scrollToProduct">
+            <i class="fas fa-leaf"></i> <span data-i18n="hero.shopNow">Shop Now</span>
+          </button>
+          <button class="btn-secondary">
+            <i class="fas fa-play-circle"></i> <span data-i18n="hero.watchStory">Watch Story</span>
+          </button>
+        </div>
+
+        <div class="hero-stats">
+          <div><span class="stat-number" data-i18n="hero.stat1num">10K+</span> <span class="stat-label" data-i18n="hero.stat1lbl">Happy Customers</span></div>
+          <div><span class="stat-number" data-i18n="hero.stat2num">4.9★</span> <span class="stat-label" data-i18n="hero.stat2lbl">Average Rating</span></div>
+          <div><span class="stat-number" data-i18n="hero.stat3num">100%</span> <span class="stat-label" data-i18n="hero.stat3lbl">Clean &amp; Simple</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span data-i18n="hero.scroll">Scroll to explore</span>
+    <i class="fas fa-chevron-down"></i>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+  <section class="about-section" id="aboutSection">
+    <div class="container">
+      <div class="about-wrapper">
+        <div class="about-text glass">
+          <div class="section-header">
+            <span class="section-tag"><i class="fas fa-info-circle"></i> <span data-i18n="about.tag">About AMAZE</span></span>
+            <h2 data-i18n="about.title">What Makes Us <span>Different</span></h2>
+            <p data-i18n="about.subtitle">Discover the story behind our revolutionary product</p>
+          </div>
+
+          <div class="about-content">
+            <p data-i18n="about.p1"></p>
+            <p data-i18n="about.p2"></p>
+            <p data-i18n="about.p3"></p>
+          </div>
+
+          <div class="about-highlights">
+            <div class="highlight-item"><i class="fas fa-leaf"></i><span data-i18n="about.h1.title">100% Natural</span><small data-i18n="about.h1.sub">No chemicals, just pure cleansing</small></div>
+            <div class="highlight-item"><i class="fas fa-recycle"></i><span data-i18n="about.h2.title">Eco-Friendly</span><small data-i18n="about.h2.sub">Reusable and sustainable</small></div>
+            <div class="highlight-item"><i class="fas fa-heart"></i><span data-i18n="about.h3.title">Gentle on Skin</span><small data-i18n="about.h3.sub">Safe for sensitive skin</small></div>
+            <div class="highlight-item"><i class="fas fa-star"></i><span data-i18n="about.h4.title">Effective Results</span><small data-i18n="about.h4.sub">Removes makeup instantly</small></div>
+          </div>
+
+          <div class="about-cta">
+            <button class="btn-primary-light" id="scrollToProductBtn"><i class="fas fa-shopping-bag"></i> <span data-i18n="about.cta.shop">Shop Now</span></button>
+            <button class="btn-secondary-dark"><i class="fas fa-play-circle"></i> <span data-i18n="about.cta.learn">Learn More</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="amaze-product-section">
+    <div class="container">
+      <div class="amaze-product-card glass">
+        <div class="amaze-product-header">
+          <span class="amaze-logo-text">AMAZE</span>
+          <span class="amaze-tagline" data-i18n="amaze.tagline">Remove, Reuse, AMAZE</span>
+        </div>
+
+        <div class="amaze-short-line">
+          <span data-i18n="amaze.quote">"Gentle cleansing. Powerful results."</span>
+        </div>
+
+        <div class="amaze-tagline-text">
+          <i class="fas fa-spa"></i> <span data-i18n="amaze.gentle">Gentle cleanliness... for every day</span> <i class="fas fa-spa"></i>
+        </div>
+
+        <div class="amaze-features-grid">
+          <div class="amaze-feature">
+            <div class="amaze-feature-icon"><i class="fas fa-broom"></i></div>
+            <h4 data-i18n="amaze.f1.title">Deep Cleansing</h4>
+            <p data-i18n="amaze.f1.text">Removes makeup and impurities with just one wipe</p>
+          </div>
+          <div class="amaze-feature">
+            <div class="amaze-feature-icon"><i class="fas fa-leaf"></i></div>
+            <h4 data-i18n="amaze.f2.title">Gentle on Your Skin</h4>
+            <p data-i18n="amaze.f2.text">Suitable for sensitive skin and doesn't cause irritation</p>
+          </div>
+          <div class="amaze-feature">
+            <div class="amaze-feature-icon"><i class="fas fa-water"></i></div>
+            <h4 data-i18n="amaze.f3.title">Use with Water Only</h4>
+            <p data-i18n="amaze.f3.text">No chemicals - eco-friendly</p>
+          </div>
+        </div>
+
+        <div class="amaze-benefits-grid">
+          <div class="amaze-benefit"><i class="fas fa-recycle"></i><span data-i18n="amaze.b1.title">Washable</span><small data-i18n="amaze.b1.sub">Reusable &amp; eco-friendly</small></div>
+          <div class="amaze-benefit"><i class="fas fa-award"></i><span data-i18n="amaze.b2.title">Durable Quality</span><small data-i18n="amaze.b2.sub">Long-lasting use</small></div>
+          <div class="amaze-benefit"><i class="fas fa-cloud"></i><span data-i18n="amaze.b3.title">Soft Texture</span><small data-i18n="amaze.b3.sub">Complete skin comfort</small></div>
+          <div class="amaze-benefit"><i class="fas fa-bag"></i><span data-i18n="amaze.b4.title">Portable</span><small data-i18n="amaze.b4.sub">Perfect for travel &amp; bags</small></div>
+        </div>
+
+        <div class="amaze-result">
+          <i class="fas fa-star"></i> <span data-i18n="amaze.result">Gentle Experience · Amazing Results</span> <i class="fas fa-star"></i>
+        </div>
+
+        <div class="amaze-badge-container">
+          <span class="amaze-badge" data-i18n="amaze.safeBadge">✓ 100% Safe for Skin</span>
+        </div>
+
+        <div class="amaze-footer">
+          <span><i class="fas fa-sparkles"></i> <span data-i18n="amaze.idealChoice">Your Ideal Choice</span> <i class="fas fa-sparkles"></i></span>
+          <small data-i18n="amaze.idealSub">For a healthy daily routine</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reviews-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag"><i class="fas fa-heart"></i> <span data-i18n="reviews.tag">What Our Customers Say</span></span>
+        <p data-i18n="reviews.subtitle">Loved by thousands of women around the world</p>
+      </div>
+
+      <div class="reviews-grid" id="reviewsGrid"></div>
+    </div>
+  </section>
+
+  <section class="product-section" id="productSection">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-i18n="product.tag">Our Hero</span>
+        <h2 data-i18n="product.title">The <span>Radiant</span> Serum</h2>
+        <p data-i18n="product.subtitle">One product, endless glow.</p>
+      </div>
+
+      <div class="product-card glass">
+        <div class="product-image">
+          <span class="product-badge" data-i18n="product.bestseller">Bestseller</span>
+          <img
+            src="image-video/amaze.jpeg"
+            alt="Radiant Glow Serum"
+            onerror="this.onerror=null; this.src='image-video/amaze.jpg';"
+          />
+        </div>
+
+        <div class="product-details">
+          <span class="product-category" data-i18n="product.category">Skincare</span>
+          <h3 data-i18n="product.name">Radiant Glow Serum</h3>
+          <div class="product-rating">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            <span>(4.9)</span>
+          </div>
+          <div class="product-price">$48.00 <small data-i18n="product.priceOld">$64.00</small></div>
+          <ul class="product-features">
+            <li><i class="fas fa-check-circle"></i> <span data-i18n="product.f1">Vitamin C + Hyaluronic Acid</span></li>
+            <li><i class="fas fa-check-circle"></i> <span data-i18n="product.f2">Brightening &amp; Plumping</span></li>
+            <li><i class="fas fa-check-circle"></i> <span data-i18n="product.f3">100% Sustainable</span></li>
+          </ul>
+
+          <div class="product-actions">
+            <div class="quantity-selector">
+              <button id="qtyDecrease">−</button>
+              <span id="qtyDisplay">1</span>
+              <button id="qtyIncrease">+</button>
+            </div>
+            <button class="btn-cart" id="addToCartBtn">
+              <i class="fas fa-shopping-bag"></i> <span data-i18n="product.addToCart">Add to Cart</span>
+            </button>
+          </div>
+
+          <div class="product-extras">
+            <span><i class="fas fa-truck"></i> <span data-i18n="product.fastShipping">Fast Shipping</span></span>
+            <span><i class="fas fa-undo-alt"></i> <span data-i18n="product.returns">30-Day Returns</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="cart-preview glass" id="cartPreview">
+      <div class="cart-header">
+        <h3><i class="fas fa-shopping-bag"></i> <span data-i18n="cart.title">Your Cart</span></h3>
+        <span id="cartItemCount">0 <span data-i18n="cart.items">items</span></span>
+      </div>
+      <div id="cartItemsContainer">
+        <div class="cart-empty">
+          <i class="fas fa-box-open"></i>
+          <p data-i18n="cart.empty">Your cart is empty</p>
+          <span data-i18n="cart.emptySub">Start your glow journey.</span>
+        </div>
+      </div>
+      <div class="cart-total hidden" id="cartTotalWrapper">
+        <div class="total-left">
+          <span><span data-i18n="cart.total">Total:</span> <span id="cartTotalPrice">$0.00</span></span>
+        </div>
+        <div class="total-right">
+          <button class="btn-clear-cart" id="clearCartBtn"><i class="fas fa-trash-alt"></i> <span data-i18n="cart.clear">Clear</span></button>
+          <a href="#productSection" class="btn-continue-shopping"><i class="fas fa-arrow-left"></i> <span data-i18n="cart.continue">Continue Shopping</span></a>
+          <a href="cart.html" class="btn-checkout"><i class="fas fa-lock"></i> <span data-i18n="cart.checkout">Checkout</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal glass">
+    <button class="modal-close" id="closeProfileModal">&times;</button>
+    <div class="profile-avatar"><i class="fas fa-user-circle"></i></div>
+    <h2>My Profile</h2>
+    <div class="profile-info">
+      <div class="profile-field"><span><i class="fas fa-user"></i> Name</span> <span id="profileName">Guest</span></div>
+      <div class="profile-field"><span><i class="fas fa-envelope"></i> Email</span> <span id="profileEmail">guest@example.com</span></div>
+      <div class="profile-field"><span><i class="fas fa-calendar"></i> Member Since</span> <span>2026</span></div>
+      <div class="profile-field"><span><i class="fas fa-circle"></i> Status</span> <span id="profileStatus" style="color:#b45f4b;">Guest</span></div>
+    </div>
+    <button class="btn-modal logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Log Out</button>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

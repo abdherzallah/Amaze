@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shop · AMAZE</title>
+
+<!-- Immediately send the visitor to the product section on the homepage -->
+<meta http-equiv="refresh" content="0; url=index.html#productSection" />
+<link rel="canonical" href="index.html#productSection" />
+
+<style>
+  /* Fallback in case the meta refresh doesn't fire (very rare) */
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #fcf8f5;
+    color: #2d2a24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+  .redirect-box {
+    padding: 40px;
+  }
+  .redirect-box i {
+    font-size: 32px;
+    color: #b45f4b;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .redirect-box a {
+    color: #b45f4b;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .redirect-box a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="redirect-box">
+  <i>🌿</i>
+  <p>Redirecting to the shop…</p>
+  <p><a href="index.html#productSection">Click here if you are not redirected.</a></p>
+</div>
+
+<script>
+  // JS redirect (fires faster than the meta refresh in most browsers)
+  window.location.replace('index.html#productSection');
+</script>
+
+</body>
+</html>
