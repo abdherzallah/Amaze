@@ -2,9 +2,129 @@
    AMAZE · main.js  (for index.html)
    ============================================================ */
 
-/* ---------- STATE ---------- */
+/* ============================================================
+   USER SESSION + COUNTRY + CURRENCY
+   ============================================================ */
+let CURRENT_USER     = null;
+let CURRENT_COUNTRY  = 'US';
+let CURRENT_CURRENCY = 'USD';
+let CURRENCY_SYMBOL  = '$';
+
+/* ---------- Load session ---------- */
+async function loadUserSession() {
+  try {
+    const res = await fetch('api/auth_user.php?action=me', { credentials: 'same-origin' });
+    const data = await res.json();
+    if (data.authenticated) {
+      CURRENT_USER = data.user;
+      CURRENT_COUNTRY = data.user.country || 'US';
+    }
+  } catch (e) { /* ignore */ }
+
+  CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
+  CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
+
+  window.AMAZE_COUNTRY  = CURRENT_COUNTRY;
+  window.AMAZE_CURRENCY = CURRENT_CURRENCY;
+  window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
+}
+
+/* ---------- Detect country ---------- */
+async function detectCountry() {
+  if (CURRENT_USER) return;
+  try {
+    const res = await fetch('api/geo.php', { credentials: 'same-origin' });
+    const data = await res.json();
+    if (data.ok && data.country) {
+      CURRENT_COUNTRY  = data.country;
+      CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
+      CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
+
+      window.AMAZE_COUNTRY  = CURRENT_COUNTRY;
+      window.AMAZE_CURRENCY = CURRENT_CURRENCY;
+      window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
+    }
+  } catch (e) { /* ignore */ }
+}
+
+/* ---------- Fetch product ---------- */
+async function loadProductFromApi() {
+  try {
+    const res = await fetch(`api/products.php?country=${CURRENT_COUNTRY}`, { credentials: 'same-origin' });
+    const data = await res.json();
+    if (!data.ok || !data.products || !data.products.length) return;
+
+    const p = data.products[0];
+    const sym = CURRENCY_SYMBOL;
+
+    const priceEl = document.querySelector('.product-price');
+    if (priceEl) {
+      priceEl.innerHTML = `${sym}${Number(p.price_display).toFixed(2)}`;
+    }
+
+    window.AMAZE_PRODUCT = p;
+
+    try {
+      localStorage.setItem('amaze_product', JSON.stringify({
+        id: p.id,
+        name: p.name,
+        image: p.image,
+        price_display: p.price_display,
+        bundle_qty: p.bundle_qty,
+        bundle_price: p.bundle_price,
+        currency: p.currency,
+        country: CURRENT_COUNTRY
+      }));
+    } catch (e) {}
+  } catch (e) {
+    console.error('Product fetch failed:', e);
+  }
+}
+
+/* ---------- Navbar user ---------- */
+function updateNavbar() {
+  const navUserContainer = document.getElementById('navUserContainer');
+  if (!navUserContainer) return;
+
+  if (CURRENT_USER) {
+    const initials = CURRENT_USER.name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+
+    navUserContainer.innerHTML = `
+      <div class="nav-user">
+        <div class="user-avatar">${initials}</div>
+        <span class="user-name">${CURRENT_USER.name}</span>
+        <a class="logout-link" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    `;
+  } else {
+    navUserContainer.innerHTML = `
+      <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+      <a href="register.html" class="btn-register"><i class="fas fa-user-plus"></i> Register</a>
+    `;
+  }
+}
+
+async function logoutUser() {
+  if (!confirm('Log out?')) return;
+  try {
+    await fetch('api/auth_user.php?action=logout', {
+      method: 'POST',
+      credentials: 'same-origin'
+    });
+  } catch (e) {}
+  window.location.href = 'index.html';
+}
+window.logoutUser = logoutUser;
+
+/* ============================================================
+   STATE
+   ============================================================ */
 let cart = [];
-let currentUser = null;
 let productQty = 1;
 
 const PRODUCT = {
@@ -14,7 +134,13 @@ const PRODUCT = {
   img: 'images-video/amaze.jpeg'
 };
 
-/* ---------- TOAST ---------- */
+/* ---------- Helpers ---------- */
+function fixImgPath(img) {
+  if (!img) return '';
+  return img.replace(/(^|\/)image-video\//, '$1images-video/');
+}
+
+/* ---------- Toast ---------- */
 function showToast(messageOrKey, type = 'success') {
   const toast = document.getElementById('toast');
   if (!toast) return;
@@ -29,33 +155,9 @@ function showToast(messageOrKey, type = 'success') {
   setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-/* ---------- NAVBAR USER ---------- */
-function updateNavbar() {
-  currentUser = JSON.parse(localStorage.getItem('amaze_current_user') || 'null');
-  const navUserContainer = document.getElementById('navUserContainer');
-  if (!navUserContainer) return;
-
-  if (currentUser) {
-    const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    navUserContainer.innerHTML = `
-      <div class="nav-user">
-        <div class="user-avatar">${initials}</div>
-        <span class="user-name">${currentUser.name}</span>
-        <a class="logout-link" id="navbarLogout"><i class="fas fa-sign-out-alt"></i></a>
-      </div>
-    `;
-    document.getElementById('navbarLogout')?.addEventListener('click', () => {
-      if (confirm('Are you sure you want to logout?')) {
-        localStorage.removeItem('amaze_current_user');
-        location.reload();
-      }
-    });
-  } else {
-    navUserContainer.innerHTML = '';
-  }
-}
-
-/* ---------- CART UI ---------- */
+/* ============================================================
+   CART UI (homepage preview)
+   ============================================================ */
 function updateCartUI() {
   const cartBadge = document.getElementById('cartBadge');
   const cartItemsContainer = document.getElementById('cartItemsContainer');
@@ -71,9 +173,11 @@ function updateCartUI() {
 
   if (!cartItemsContainer) return;
 
+  const sym = window.AMAZE_SYMBOL || '$';
+
   if (cart.length === 0) {
     const emptyText = window.LanguageManager ? LanguageManager.t('cart.empty') : 'Your cart is empty';
-    const emptySub = window.LanguageManager ? LanguageManager.t('cart.emptySub') : 'Start your glow journey.';
+    const emptySub  = window.LanguageManager ? LanguageManager.t('cart.emptySub') : 'Start your glow journey.';
     cartItemsContainer.innerHTML = `
       <div class="cart-empty">
         <i class="fas fa-box-open"></i>
@@ -90,11 +194,13 @@ function updateCartUI() {
   cart.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
     total += itemTotal;
+    const safeImg = fixImgPath(item.img) || 'images-video/amaze.jpeg';
+
     html += `
       <div class="cart-item">
         <div class="cart-item-info">
-          <img src="${item.img}" alt="${item.name}">
-          <div><strong>${item.name}</strong> × ${item.quantity} <span style="color:#8a7a6e;">$${itemTotal.toFixed(2)}</span></div>
+          <img src="${safeImg}" alt="${item.name}" onerror="this.onerror=null;this.src='images-video/amaze.jpeg'">
+          <div><strong>${item.name}</strong> × ${item.quantity} <span style="color:#8a7a6e;">${sym}${itemTotal.toFixed(2)}</span></div>
         </div>
         <button class="cart-item-remove" data-index="${index}"><i class="fas fa-trash-alt"></i></button>
       </div>
@@ -103,7 +209,7 @@ function updateCartUI() {
 
   cartItemsContainer.innerHTML = html;
   if (cartTotalWrapper) cartTotalWrapper.classList.remove('hidden');
-  if (cartTotalPrice) cartTotalPrice.textContent = '$' + total.toFixed(2);
+  if (cartTotalPrice) cartTotalPrice.textContent = sym + total.toFixed(2);
 
   document.querySelectorAll('.cart-item-remove').forEach(btn => {
     btn.addEventListener('click', function () {
@@ -117,9 +223,26 @@ function updateCartUI() {
 }
 
 function addToCart(quantity) {
-  const existing = cart.find(item => item.id === PRODUCT.id);
-  if (existing) existing.quantity += quantity;
-  else cart.push({ ...PRODUCT, quantity });
+  const product = window.AMAZE_PRODUCT;
+
+  const price = product ? Number(product.price_display) : 48.00;
+  const id    = product ? product.id : PRODUCT.id;
+  const name  = product ? product.name : PRODUCT.name;
+  const img   = product ? product.image : PRODUCT.img;
+
+  const existing = cart.find(item => item.id === id);
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    cart.push({
+      id: id,
+      name: name,
+      price: price,
+      img: img,
+      quantity: quantity
+    });
+  }
+
   localStorage.setItem('amaze_cart', JSON.stringify(cart));
   updateCartUI();
   showToast('toast.addedToCart');
@@ -133,7 +256,9 @@ function loadCart() {
   updateCartUI();
 }
 
-/* ---------- REVIEWS ---------- */
+/* ============================================================
+   REVIEWS (public)
+   ============================================================ */
 function loadApprovedReviews() {
   const reviews = JSON.parse(localStorage.getItem('amaze_reviews') || '[]');
   const approved = reviews.filter(r => r.status === 'approved');
@@ -147,9 +272,7 @@ function loadApprovedReviews() {
   if (approved.length === 0) {
     grid.innerHTML = `
       <div class="review-card glass">
-        <div class="review-stars">
-          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-        </div>
+        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
         <p class="review-text">"AMAZE is truly amazing! I've struggled with sensitive skin for years, but this makeup remover is so gentle. It removes everything in one swipe and leaves my skin feeling soft and hydrated."</p>
         <div class="reviewer-info">
           <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M35 50 Q50 58 65 50' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Sarah" /></div>
@@ -158,9 +281,7 @@ function loadApprovedReviews() {
         </div>
       </div>
       <div class="review-card glass">
-        <div class="review-stars">
-          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-        </div>
+        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
         <p class="review-text">"I've tried so many makeup removers, but AMAZE is by far the best! It's so gentle and effective. I love that I can just use water with it - no harsh chemicals."</p>
         <div class="reviewer-info">
           <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M40 48 Q50 55 60 48' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Jessica" /></div>
@@ -169,9 +290,7 @@ function loadApprovedReviews() {
         </div>
       </div>
       <div class="review-card glass">
-        <div class="review-stars">
-          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-        </div>
+        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
         <p class="review-text">"AMAZE completely transformed my skincare routine! It removes makeup so gently and doesn't irritate my sensitive skin at all. I highly recommend it to anyone looking for a natural and effective product!"</p>
         <div class="reviewer-info">
           <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M38 52 Q50 60 62 52' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Noura" /></div>
@@ -207,7 +326,7 @@ function loadApprovedReviews() {
   grid.innerHTML = html;
 }
 
-/* ---------- MODALS ---------- */
+/* ---------- Modals ---------- */
 function closeAllModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
 }
@@ -216,54 +335,97 @@ function openModal(modal) {
   if (modal) modal.classList.add('active');
 }
 
-/* ---------- VIDEO AUTOPLAY FIX ---------- */
+/* ============================================================
+   HERO VIDEO — scroll-pinned + full quality
+   ============================================================ */
 function initHeroVideo() {
   const video = document.getElementById('bgVideo');
   if (!video) return;
 
-  // Attempt to play (some browsers block until muted is set programmatically)
+  /* Autoplay */
   video.muted = true;
   video.setAttribute('muted', '');
   const attempt = video.play();
   if (attempt && attempt.catch) {
-    attempt.catch((err) => {
-      console.warn('Video autoplay blocked:', err.message);
-      // Fallback gradient already in CSS via .video-fallback — nothing else needed
-    });
+    attempt.catch((err) => console.warn('Video autoplay blocked:', err.message));
   }
 
-  // Handle load errors gracefully
+  /* Error handling */
   video.addEventListener('error', () => {
-    console.error('Video failed to load. Check that images-video/Amaze.mp4 exists and is H.264-encoded.');
+    console.error('Video failed to load. Check images-video/Amaze1.mp4 exists.');
     video.style.display = 'none';
   });
 
-  // Pause when tab is hidden (saves battery)
+  /* Log resolution once metadata loads */
+  video.addEventListener('loadedmetadata', () => {
+    if (video.videoWidth > 0 && video.videoHeight > 0) {
+      console.log('🎥 Video: ' + video.videoWidth + '×' + video.videoHeight +
+                  ' (' + Math.round(video.duration) + 's)');
+    }
+  });
+
+  /* Pause when tab hidden */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) video.pause();
     else video.play().catch(() => {});
   });
+
+  /* Scroll progress: fade video + drift text as user scrolls through pinned section */
+  const wrapper = document.getElementById('videoHeroWrapper');
+  if (wrapper) {
+    const heroText  = document.querySelector('.hero-text-on-video');
+    const watermark = document.querySelector('.amaze-on-video');
+
+    const updateOnScroll = () => {
+      const rect = wrapper.getBoundingClientRect();
+      const totalHeight = wrapper.offsetHeight - window.innerHeight;
+      const scrolled = Math.min(Math.max(-rect.top, 0), totalHeight);
+      const progress = totalHeight > 0 ? scrolled / totalHeight : 0;
+
+      /* Video fades 100% → 40% */
+      video.style.opacity = (1 - progress * 0.6).toFixed(3);
+
+      /* Hero text fades + drifts up */
+      if (heroText) {
+        heroText.style.opacity = Math.max(0, 1 - progress * 1.3).toFixed(3);
+        heroText.style.transform = `translateY(${-progress * 40}px)`;
+      }
+
+      /* AMAZE watermark scales slightly */
+      if (watermark) {
+        watermark.style.transform = `translateX(-50%) scale(${1 + progress * 0.08})`;
+      }
+    };
+
+    window.addEventListener('scroll', updateOnScroll, { passive: true });
+    window.addEventListener('resize', updateOnScroll);
+    updateOnScroll();
+  }
 }
 
-/* ---------- INIT ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  // Video first (so it can start loading ASAP)
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
   initHeroVideo();
 
-  // Language
-  if (window.LanguageManager) LanguageManager.init();
+  await loadUserSession();
+  await detectCountry();
+  await loadProductFromApi();
 
-  // Data
-  loadCart();
-  loadApprovedReviews();
   updateNavbar();
 
-  // Navbar solid on scroll
+  if (window.LanguageManager) LanguageManager.init();
+
+  loadCart();
+  loadApprovedReviews();
+
+  /* Navbar solid on scroll */
   window.addEventListener('scroll', () => {
     document.querySelector('.navbar-fixed')?.classList.toggle('scrolled', window.scrollY > 20);
   });
 
-  // Quantity selector
+  /* Quantity selector */
   const qtyDisplay = document.getElementById('qtyDisplay');
   document.getElementById('qtyDecrease')?.addEventListener('click', () => {
     if (productQty > 1) { productQty--; qtyDisplay.textContent = productQty; }
@@ -272,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
     productQty++; qtyDisplay.textContent = productQty;
   });
 
-  // Add to cart
+  /* Add to cart */
   document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     const qty = parseInt(qtyDisplay?.textContent, 10) || 1;
     addToCart(qty);
@@ -280,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (qtyDisplay) qtyDisplay.textContent = '1';
   });
 
-  // Clear cart
+  /* Clear cart */
   document.getElementById('clearCartBtn')?.addEventListener('click', () => {
     if (cart.length === 0) return;
     if (confirm('⚠️ Are you sure you want to clear your cart?')) {
@@ -291,12 +453,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Cart icon → cart page
+  /* Cart icon → cart page */
   document.getElementById('cartToggleBtn')?.addEventListener('click', () => {
     window.location.href = 'cart.html';
   });
 
-  // Scroll to product
+  /* Scroll to product */
   document.getElementById('scrollToProduct')?.addEventListener('click', () => {
     document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
   });
@@ -304,40 +466,31 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // About link scroll
+  /* About link */
   document.getElementById('aboutLink')?.addEventListener('click', (e) => {
     e.preventDefault();
     document.getElementById('aboutSection')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  // Close profile modal
+  /* Close profile modal */
   document.getElementById('closeProfileModal')?.addEventListener('click', closeAllModals);
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', function (e) { if (e.target === this) closeAllModals(); });
   });
 
-  // Logout
-  document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    if (confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('amaze_current_user');
-      closeAllModals();
-      showToast('toast.loggedOut');
-      setTimeout(() => location.reload(), 500);
-    }
-  });
-
-  // Re-render dynamic content on language change
+  /* Re-render on language change */
   window.addEventListener('languageChanged', () => {
     updateCartUI();
     loadApprovedReviews();
   });
 });
+
 /* ============================================================
-   SECRET ADMIN SHORTCUT — Ctrl + Shift + A
+   SECRET ADMIN SHORTCUT
    ============================================================ */
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
     e.preventDefault();
-    window.location.href = 'admin.html';
+    window.location.href = 'admin-login.html';
   }
 });

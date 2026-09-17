@@ -47,56 +47,64 @@
   </div>
 </nav>
 
-<!-- VIDEO HERO -->
-<section class="video-hero" id="videoHero">
-  <video
-    class="bg-video"
-    id="bgVideo"
-    autoplay
-    muted
-    loop
-    playsinline
-    preload="auto"
-    disablepictureinpicture
-    controlslist="nodownload"
-  >
-    <source src="images-video/Amaze1.mp4" type="video/mp4" />
-  </video>
+<!-- ============================================================
+     VIDEO HERO — scroll-pinned
+     The wrapper is tall (250vh). The inner is fixed (100vh) and
+     sticks while the user scrolls through the wrapper. Once the
+     wrapper ends, the rest of the page scrolls normally.
+     ============================================================ -->
+<section class="video-hero-wrapper" id="videoHeroWrapper">
+  <div class="video-hero" id="videoHero">
+    <video
+      class="bg-video"
+      id="bgVideo"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      disablepictureinpicture
+      controlslist="nodownload"
+      x-webkit-airplay="deny"
+    >
+      <source src="images-video/Amaze1.mp4" type="video/mp4" />
+    </video>
 
-  <!-- Fallback background (visible if video fails to load) -->
-  <div class="video-fallback"></div>
+    <!-- Fallback background (visible if video fails to load) -->
+    <div class="video-fallback"></div>
 
-  <div class="video-overlay"></div>
-  <div class="amaze-on-video">AMAZE</div>
+    <div class="video-overlay"></div>
+    <div class="amaze-on-video">AMAZE</div>
 
-  <div class="video-content">
-    <div class="container">
-      <div class="hero-text-on-video">
-        <span class="badge"><i class="fas fa-leaf"></i> <span data-i18n="hero.badge">Clean &amp; Simple</span></span>
-        <h1 data-i18n="hero.title">Discover Your <span>Radiance</span></h1>
-        <p data-i18n="hero.subtitle">Pure water. Pure skin. Pure AMAZE.</p>
+    <div class="video-content">
+      <div class="container">
+        <div class="hero-text-on-video">
+          <span class="badge"><i class="fas fa-leaf"></i> <span data-i18n="hero.badge">Clean &amp; Simple</span></span>
+          <h1 data-i18n="hero.title">Discover Your <span>Radiance</span></h1>
+          <p data-i18n="hero.subtitle">Pure water. Pure skin. Pure AMAZE.</p>
 
-        <div class="hero-buttons">
-          <button class="btn-primary" id="scrollToProduct">
-            <i class="fas fa-leaf"></i> <span data-i18n="hero.shopNow">Shop Now</span>
-          </button>
-          <button class="btn-secondary">
-            <i class="fas fa-play-circle"></i> <span data-i18n="hero.watchStory">Watch Story</span>
-          </button>
-        </div>
+          <div class="hero-buttons">
+            <button class="btn-primary" id="scrollToProduct">
+              <i class="fas fa-leaf"></i> <span data-i18n="hero.shopNow">Shop Now</span>
+            </button>
+            <button class="btn-secondary">
+              <i class="fas fa-play-circle"></i> <span data-i18n="hero.watchStory">Watch Story</span>
+            </button>
+          </div>
 
-        <div class="hero-stats">
-          <div><span class="stat-number" data-i18n="hero.stat1num">10K+</span> <span class="stat-label" data-i18n="hero.stat1lbl">Happy Customers</span></div>
-          <div><span class="stat-number" data-i18n="hero.stat2num">4.9★</span> <span class="stat-label" data-i18n="hero.stat2lbl">Average Rating</span></div>
-          <div><span class="stat-number" data-i18n="hero.stat3num">100%</span> <span class="stat-label" data-i18n="hero.stat3lbl">Clean &amp; Simple</span></div>
+          <div class="hero-stats">
+            <div><span class="stat-number" data-i18n="hero.stat1num">10K+</span> <span class="stat-label" data-i18n="hero.stat1lbl">Happy Customers</span></div>
+            <div><span class="stat-number" data-i18n="hero.stat2num">4.9★</span> <span class="stat-label" data-i18n="hero.stat2lbl">Average Rating</span></div>
+            <div><span class="stat-number" data-i18n="hero.stat3num">100%</span> <span class="stat-label" data-i18n="hero.stat3lbl">Clean &amp; Simple</span></div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="scroll-indicator">
-    <span data-i18n="hero.scroll">Scroll to explore</span>
-    <i class="fas fa-chevron-down"></i>
+    <div class="scroll-indicator">
+      <span data-i18n="hero.scroll">Scroll to explore</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
   </div>
 </section>
 
