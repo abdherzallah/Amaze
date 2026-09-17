@@ -10,7 +10,6 @@ let CURRENT_COUNTRY  = 'US';
 let CURRENT_CURRENCY = 'USD';
 let CURRENCY_SYMBOL  = '$';
 
-/* ---------- Load session ---------- */
 async function loadUserSession() {
   try {
     const res = await fetch('api/auth_user.php?action=me', { credentials: 'same-origin' });
@@ -19,7 +18,7 @@ async function loadUserSession() {
       CURRENT_USER = data.user;
       CURRENT_COUNTRY = data.user.country || 'US';
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
 
   CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
   CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
@@ -29,7 +28,6 @@ async function loadUserSession() {
   window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
 }
 
-/* ---------- Detect country ---------- */
 async function detectCountry() {
   if (CURRENT_USER) return;
   try {
@@ -44,10 +42,9 @@ async function detectCountry() {
       window.AMAZE_CURRENCY = CURRENT_CURRENCY;
       window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {}
 }
 
-/* ---------- Fetch product ---------- */
 async function loadProductFromApi() {
   try {
     const res = await fetch(`api/products.php?country=${CURRENT_COUNTRY}`, { credentials: 'same-origin' });
@@ -81,19 +78,12 @@ async function loadProductFromApi() {
   }
 }
 
-/* ---------- Navbar user ---------- */
 function updateNavbar() {
   const navUserContainer = document.getElementById('navUserContainer');
   if (!navUserContainer) return;
 
   if (CURRENT_USER) {
-    const initials = CURRENT_USER.name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-
+    const initials = CURRENT_USER.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     navUserContainer.innerHTML = `
       <div class="nav-user">
         <div class="user-avatar">${initials}</div>
@@ -112,10 +102,7 @@ function updateNavbar() {
 async function logoutUser() {
   if (!confirm('Log out?')) return;
   try {
-    await fetch('api/auth_user.php?action=logout', {
-      method: 'POST',
-      credentials: 'same-origin'
-    });
+    await fetch('api/auth_user.php?action=logout', { method: 'POST', credentials: 'same-origin' });
   } catch (e) {}
   window.location.href = 'index.html';
 }
@@ -134,13 +121,11 @@ const PRODUCT = {
   img: 'images-video/amaze.jpeg'
 };
 
-/* ---------- Helpers ---------- */
 function fixImgPath(img) {
   if (!img) return '';
   return img.replace(/(^|\/)image-video\//, '$1images-video/');
 }
 
-/* ---------- Toast ---------- */
 function showToast(messageOrKey, type = 'success') {
   const toast = document.getElementById('toast');
   if (!toast) return;
@@ -156,7 +141,7 @@ function showToast(messageOrKey, type = 'success') {
 }
 
 /* ============================================================
-   CART UI (homepage preview)
+   CART UI
    ============================================================ */
 function updateCartUI() {
   const cartBadge = document.getElementById('cartBadge');
@@ -224,7 +209,6 @@ function updateCartUI() {
 
 function addToCart(quantity) {
   const product = window.AMAZE_PRODUCT;
-
   const price = product ? Number(product.price_display) : 48.00;
   const id    = product ? product.id : PRODUCT.id;
   const name  = product ? product.name : PRODUCT.name;
@@ -234,13 +218,7 @@ function addToCart(quantity) {
   if (existing) {
     existing.quantity += quantity;
   } else {
-    cart.push({
-      id: id,
-      name: name,
-      price: price,
-      img: img,
-      quantity: quantity
-    });
+    cart.push({ id, name, price, img, quantity });
   }
 
   localStorage.setItem('amaze_cart', JSON.stringify(cart));
@@ -257,7 +235,7 @@ function loadCart() {
 }
 
 /* ============================================================
-   REVIEWS (public)
+   REVIEWS
    ============================================================ */
 function loadApprovedReviews() {
   const reviews = JSON.parse(localStorage.getItem('amaze_reviews') || '[]');
@@ -336,13 +314,15 @@ function openModal(modal) {
 }
 
 /* ============================================================
-   HERO VIDEO — scroll-pinned + full quality
+   BACKGROUND VIDEO — plays continuously behind everything.
+   It fades subtly as the user scrolls down so text remains
+   readable over the content sections.
    ============================================================ */
-function initHeroVideo() {
-  const video = document.getElementById('bgVideo');
+function initBackgroundVideo() {
+  const video   = document.getElementById('bgVideo');
+  const overlay = document.querySelector('.video-overlay');
   if (!video) return;
 
-  /* Autoplay */
   video.muted = true;
   video.setAttribute('muted', '');
   const attempt = video.play();
@@ -350,13 +330,11 @@ function initHeroVideo() {
     attempt.catch((err) => console.warn('Video autoplay blocked:', err.message));
   }
 
-  /* Error handling */
   video.addEventListener('error', () => {
     console.error('Video failed to load. Check images-video/Amaze1.mp4 exists.');
     video.style.display = 'none';
   });
 
-  /* Log resolution once metadata loads */
   video.addEventListener('loadedmetadata', () => {
     if (video.videoWidth > 0 && video.videoHeight > 0) {
       console.log('🎥 Video: ' + video.videoWidth + '×' + video.videoHeight +
@@ -364,50 +342,47 @@ function initHeroVideo() {
     }
   });
 
-  /* Pause when tab hidden */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) video.pause();
     else video.play().catch(() => {});
   });
 
-  /* Scroll progress: fade video + drift text as user scrolls through pinned section */
-  const wrapper = document.getElementById('videoHeroWrapper');
-  if (wrapper) {
-    const heroText  = document.querySelector('.hero-text-on-video');
-    const watermark = document.querySelector('.amaze-on-video');
+  /* Subtle parallax: video stays fixed but shifts slightly */
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      const vh = window.innerHeight;
+      const progress = Math.min(scrollY / vh, 3);
 
-    const updateOnScroll = () => {
-      const rect = wrapper.getBoundingClientRect();
-      const totalHeight = wrapper.offsetHeight - window.innerHeight;
-      const scrolled = Math.min(Math.max(-rect.top, 0), totalHeight);
-      const progress = totalHeight > 0 ? scrolled / totalHeight : 0;
+      /* Video drifts up slightly (parallax feel) */
+      video.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.15}px))`;
 
-      /* Video fades 100% → 40% */
-      video.style.opacity = (1 - progress * 0.6).toFixed(3);
-
-      /* Hero text fades + drifts up */
-      if (heroText) {
-        heroText.style.opacity = Math.max(0, 1 - progress * 1.3).toFixed(3);
-        heroText.style.transform = `translateY(${-progress * 40}px)`;
+      /* Overlay dims more as you scroll deeper (for readability) */
+      if (overlay) {
+        const dim = Math.min(0.45 + progress * 0.1, 0.75);
+        overlay.style.background =
+          `linear-gradient(to bottom,
+            rgba(25, 15, 12, ${dim}) 0%,
+            rgba(25, 15, 12, ${dim + 0.1}) 50%,
+            rgba(25, 15, 12, ${Math.min(dim + 0.2, 0.85)}) 100%)`;
       }
 
-      /* AMAZE watermark scales slightly */
-      if (watermark) {
-        watermark.style.transform = `translateX(-50%) scale(${1 + progress * 0.08})`;
-      }
-    };
-
-    window.addEventListener('scroll', updateOnScroll, { passive: true });
-    window.addEventListener('resize', updateOnScroll);
-    updateOnScroll();
+      ticking = false;
+    });
   }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
 }
 
 /* ============================================================
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
-  initHeroVideo();
+  initBackgroundVideo();
 
   await loadUserSession();
   await detectCountry();
@@ -420,12 +395,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadCart();
   loadApprovedReviews();
 
-  /* Navbar solid on scroll */
   window.addEventListener('scroll', () => {
-    document.querySelector('.navbar-fixed')?.classList.toggle('scrolled', window.scrollY > 20);
+    document.querySelector('.navbar-fixed')?.classList.toggle('scrolled', window.scrollY > 40);
   });
 
-  /* Quantity selector */
   const qtyDisplay = document.getElementById('qtyDisplay');
   document.getElementById('qtyDecrease')?.addEventListener('click', () => {
     if (productQty > 1) { productQty--; qtyDisplay.textContent = productQty; }
@@ -434,7 +407,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     productQty++; qtyDisplay.textContent = productQty;
   });
 
-  /* Add to cart */
   document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     const qty = parseInt(qtyDisplay?.textContent, 10) || 1;
     addToCart(qty);
@@ -442,7 +414,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (qtyDisplay) qtyDisplay.textContent = '1';
   });
 
-  /* Clear cart */
   document.getElementById('clearCartBtn')?.addEventListener('click', () => {
     if (cart.length === 0) return;
     if (confirm('⚠️ Are you sure you want to clear your cart?')) {
@@ -453,12 +424,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  /* Cart icon → cart page */
   document.getElementById('cartToggleBtn')?.addEventListener('click', () => {
     window.location.href = 'cart.html';
   });
 
-  /* Scroll to product */
   document.getElementById('scrollToProduct')?.addEventListener('click', () => {
     document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
   });
@@ -466,28 +435,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  /* About link */
   document.getElementById('aboutLink')?.addEventListener('click', (e) => {
     e.preventDefault();
     document.getElementById('aboutSection')?.scrollIntoView({ behavior: 'smooth' });
   });
 
-  /* Close profile modal */
   document.getElementById('closeProfileModal')?.addEventListener('click', closeAllModals);
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', function (e) { if (e.target === this) closeAllModals(); });
   });
 
-  /* Re-render on language change */
   window.addEventListener('languageChanged', () => {
     updateCartUI();
     loadApprovedReviews();
   });
 });
 
-/* ============================================================
-   SECRET ADMIN SHORTCUT
-   ============================================================ */
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
     e.preventDefault();
