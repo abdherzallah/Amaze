@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>AMAZE · Premium Cosmetics</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,8 +15,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- ============================================================
-     BACKGROUND VIDEO — fixed, covers the whole viewport,
-     stays behind ALL content while the user scrolls.
+     BACKGROUND VIDEO — fixed layer behind all content
      ============================================================ -->
 <div class="bg-video-layer" id="bgVideoLayer">
   <video
@@ -26,6 +25,8 @@
     muted
     loop
     playsinline
+    webkit-playsinline
+    x5-playsinline
     preload="auto"
     disablepictureinpicture
     controlslist="nodownload"
@@ -37,7 +38,7 @@
 </div>
 
 <!-- ============================================================
-     HERO — full-screen intro overlay, scrolls away normally
+     HERO — full-screen intro, scrolls over the video
      ============================================================ -->
 <section class="hero-intro" id="heroIntro">
   <div class="container">
@@ -69,7 +70,7 @@
   </div>
 </section>
 
-<!-- NAVBAR (on top of everything) -->
+<!-- NAVBAR -->
 <nav class="navbar-fixed" id="navbar">
   <div class="container nav-container">
     <a href="index.html" class="logo">
@@ -103,9 +104,7 @@
 </nav>
 
 <!-- ============================================================
-     MAIN CONTENT — scrolls normally. It sits above the fixed
-     video layer. To see the video through it, most sections
-     use semi-transparent glass backgrounds.
+     MAIN CONTENT
      ============================================================ -->
 <div class="main-content">
 

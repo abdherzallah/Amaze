@@ -304,7 +304,6 @@ function loadApprovedReviews() {
   grid.innerHTML = html;
 }
 
-/* ---------- Modals ---------- */
 function closeAllModals() {
   document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
 }
@@ -314,9 +313,7 @@ function openModal(modal) {
 }
 
 /* ============================================================
-   BACKGROUND VIDEO — plays continuously behind everything.
-   It fades subtly as the user scrolls down so text remains
-   readable over the content sections.
+   BACKGROUND VIDEO — mobile-safe
    ============================================================ */
 function initBackgroundVideo() {
   const video   = document.getElementById('bgVideo');
@@ -325,10 +322,27 @@ function initBackgroundVideo() {
 
   video.muted = true;
   video.setAttribute('muted', '');
+  video.setAttribute('playsinline', '');
+  video.setAttribute('webkit-playsinline', '');
+
   const attempt = video.play();
   if (attempt && attempt.catch) {
-    attempt.catch((err) => console.warn('Video autoplay blocked:', err.message));
+    attempt.catch((err) => {
+      console.warn('Video autoplay blocked:', err.message);
+      setTimeout(() => video.play().catch(() => {}), 500);
+    });
   }
+
+  /* Retry play on first user interaction (iOS) */
+  const retryOnInteraction = () => {
+    if (video.paused) video.play().catch(() => {});
+    document.removeEventListener('touchstart', retryOnInteraction);
+    document.removeEventListener('scroll', retryOnInteraction);
+    document.removeEventListener('click', retryOnInteraction);
+  };
+  document.addEventListener('touchstart', retryOnInteraction, { passive: true });
+  document.addEventListener('scroll', retryOnInteraction, { passive: true });
+  document.addEventListener('click', retryOnInteraction, { passive: true });
 
   video.addEventListener('error', () => {
     console.error('Video failed to load. Check images-video/Amaze1.mp4 exists.');
@@ -347,35 +361,45 @@ function initBackgroundVideo() {
     else video.play().catch(() => {});
   });
 
-  /* Subtle parallax: video stays fixed but shifts slightly */
-  let ticking = false;
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const scrollY = window.scrollY || window.pageYOffset;
-      const vh = window.innerHeight;
-      const progress = Math.min(scrollY / vh, 3);
+  /* Parallax drift only on desktop — mobile keeps the video fixed */
+  const isMobile = window.matchMedia('(max-width: 768px)').matches
+                || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
-      /* Video drifts up slightly (parallax feel) */
-      video.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.15}px))`;
+  if (!isMobile) {
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY || window.pageYOffset;
+        const vh = window.innerHeight;
+        const progress = Math.min(scrollY / vh, 3);
 
-      /* Overlay dims more as you scroll deeper (for readability) */
-      if (overlay) {
-        const dim = Math.min(0.45 + progress * 0.1, 0.75);
-        overlay.style.background =
-          `linear-gradient(to bottom,
-            rgba(25, 15, 12, ${dim}) 0%,
-            rgba(25, 15, 12, ${dim + 0.1}) 50%,
-            rgba(25, 15, 12, ${Math.min(dim + 0.2, 0.85)}) 100%)`;
-      }
+        video.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.15}px)) translateZ(0)`;
 
-      ticking = false;
-    });
+        if (overlay) {
+          const dim = Math.min(0.45 + progress * 0.1, 0.75);
+          overlay.style.background =
+            `linear-gradient(to bottom,
+              rgba(25, 15, 12, ${dim}) 0%,
+              rgba(25, 15, 12, ${dim + 0.1}) 50%,
+              rgba(25, 15, 12, ${Math.min(dim + 0.2, 0.85)}) 100%)`;
+        }
+        ticking = false;
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+  } else {
+    if (overlay) {
+      overlay.style.background =
+        `linear-gradient(to bottom,
+          rgba(25, 15, 12, 0.5) 0%,
+          rgba(25, 15, 12, 0.6) 50%,
+          rgba(25, 15, 12, 0.75) 100%)`;
+    }
   }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  onScroll();
 }
 
 /* ============================================================

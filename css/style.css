@@ -1,6 +1,5 @@
 /* ============================================================
    AMAZE · style.css
-   Shared + homepage styles
    ============================================================ */
 
 /* ---------- RESET & BASE ---------- */
@@ -12,6 +11,8 @@ html, body {
   background: #fcf8f5;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -27,42 +28,47 @@ button { font-family: inherit; }
 }
 
 /* ============================================================
-   BACKGROUND VIDEO LAYER
-   Fixed to the viewport, behind all content, stays visible
-   the entire time while the user scrolls.
+   BACKGROUND VIDEO LAYER — mobile-safe
    ============================================================ */
 .bg-video-layer {
   position: fixed;
-  inset: 0;
-  width: 100vw;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 0;
   overflow: hidden;
   background: #1a0f0c;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  pointer-events: none;
 }
 
 .bg-video {
   position: absolute;
   top: 50%;
   left: 50%;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center center;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: auto;
-  backface-visibility: hidden;
+  transform: translate(-50%, -50%) translateZ(0);
+  -webkit-transform: translate(-50%, -50%) translateZ(0);
   -webkit-backface-visibility: hidden;
-  will-change: opacity;
+  backface-visibility: hidden;
+  will-change: transform;
+  pointer-events: none;
 }
 
-/* Overlay dims the video so text stays readable */
 .video-overlay {
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: linear-gradient(
     to bottom,
     rgba(25, 15, 12, 0.45) 0%,
@@ -85,12 +91,13 @@ button { font-family: inherit; }
 }
 
 /* ============================================================
-   HERO INTRO — full-screen section that scrolls away normally
+   HERO INTRO
    ============================================================ */
 .hero-intro {
   position: relative;
   z-index: 2;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -113,8 +120,8 @@ button { font-family: inherit; }
   padding: 6px 18px;
   border-radius: 60px;
   margin-bottom: 20px;
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 .hero-text-on-video h1 {
   font-family: 'Playfair Display', Georgia, serif;
@@ -184,8 +191,8 @@ button { font-family: inherit; }
   align-items: center;
   gap: 10px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -250,7 +257,7 @@ button { font-family: inherit; }
 }
 
 /* ============================================================
-   NAVBAR (fixed, above everything)
+   NAVBAR
    ============================================================ */
 .navbar-fixed {
   position: fixed;
@@ -259,8 +266,8 @@ button { font-family: inherit; }
   z-index: 1000;
   padding: 12px 0;
   background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
@@ -493,19 +500,18 @@ html[dir="rtl"] .lang-selector .chevron-icon { right: auto; left: 14px; }
   padding: 60px 0 80px;
 }
 
-/* Glass surfaces float above the video */
 .glass {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
 .glass-soft {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
   border-radius: 24px;
   padding: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -691,8 +697,8 @@ html[dir="rtl"] .lang-selector .chevron-icon { right: auto; left: 14px; }
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 .review-card:hover {
@@ -978,8 +984,8 @@ html[dir="rtl"] .lang-selector .chevron-icon { right: auto; left: 14px; }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content: center;
@@ -1067,13 +1073,16 @@ html[dir="rtl"] .lang-selector .chevron-icon { right: auto; left: 14px; }
 }
 .logout-btn:hover { background: rgba(180, 95, 75, 0.14) !important; }
 
-/* ---------- RESPONSIVE ---------- */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 992px) {
   .reviews-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
   .about-highlights { grid-template-columns: 1fr 1fr; }
   .amaze-features-grid { grid-template-columns: 1fr 1fr; }
   .amaze-benefits-grid { grid-template-columns: 1fr 1fr; }
 }
+
 @media (max-width: 768px) {
   .navbar-fixed { padding: 10px 0; }
   .nav-container { flex-wrap: wrap; gap: 10px; }
@@ -1122,7 +1131,67 @@ html[dir="rtl"] .lang-selector .chevron-icon { right: auto; left: 14px; }
   .nav-user { padding: 2px; background: none; border: none; }
   .nav-user .user-avatar { width: 28px; height: 28px; font-size: 11px; }
   .glass-soft { padding: 20px 16px; }
+
+  /* ----- MOBILE VIDEO FIXES ----- */
+  .bg-video-layer {
+    height: 100dvh !important;
+    width: 100vw;
+    overscroll-behavior: none;
+  }
+  .bg-video {
+    transform: translate(-50%, -50%) translateZ(0) !important;
+    -webkit-transform: translate(-50%, -50%) translateZ(0) !important;
+  }
+  .glass, .glass-soft {
+    background: rgba(255, 255, 255, 0.94) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .navbar-fixed, .navbar-fixed.scrolled {
+    background: rgba(255, 255, 255, 0.96) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border-bottom-color: rgba(180, 95, 75, 0.1) !important;
+  }
+  .navbar-fixed .logo,
+  .navbar-fixed.scrolled .logo { color: #2d2a24; }
+  .navbar-fixed .logo i,
+  .navbar-fixed.scrolled .logo i { color: #b45f4b; }
+  .navbar-fixed .logo span,
+  .navbar-fixed.scrolled .logo span {
+    background: linear-gradient(135deg, #b45f4b, #d48c7a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .navbar-fixed .nav-links a,
+  .navbar-fixed.scrolled .nav-links a { color: #3d352e; }
+  .navbar-fixed .nav-links a:hover,
+  .navbar-fixed .nav-links a.active,
+  .navbar-fixed.scrolled .nav-links a:hover,
+  .navbar-fixed.scrolled .nav-links a.active {
+    background: rgba(180, 95, 75, 0.08);
+    color: #b45f4b;
+  }
+  .navbar-fixed .nav-actions .btn-cart-icon,
+  .navbar-fixed.scrolled .nav-actions .btn-cart-icon {
+    background: rgba(180, 95, 75, 0.06);
+    border-color: rgba(180, 95, 75, 0.12);
+    color: #3d352e;
+  }
+  .navbar-fixed .lang-selector,
+  .navbar-fixed.scrolled .lang-selector {
+    background: rgba(180, 95, 75, 0.06);
+    border-color: rgba(180, 95, 75, 0.12);
+  }
+  .navbar-fixed .lang-selector .globe-icon,
+  .navbar-fixed.scrolled .lang-selector .globe-icon { color: #b45f4b; }
+  .navbar-fixed .lang-selector select,
+  .navbar-fixed.scrolled .lang-selector select { color: #3d352e; }
+  .navbar-fixed .lang-selector .chevron-icon,
+  .navbar-fixed.scrolled .lang-selector .chevron-icon { color: #b45f4b; }
 }
+
 @media (max-width: 480px) {
   .logo { font-size: 20px; }
   .nav-links a { font-size: 11px; padding: 4px 10px; }
