@@ -5,78 +5,187 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Reviews · AMAZE</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-<div class="container">
-  <nav class="navbar solid">
-    <a href="index.html" class="nav-brand">
-      <span class="brand-icon"><i class="fas fa-leaf"></i></span>
-      AMAZE
+<div class="toast" id="toast"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar-fixed scrolled" id="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="logo">
+      <i class="fas fa-spa"></i>
+      <span>AMAZE</span>
     </a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="about.html">About</a></li>
-      <li><a href="benefits.html">Benefits</a></li>
-      <li><a href="testimonials.html" class="active">Reviews</a></li>
-      <li><a href="index.html#productSection">Shop</a></li>
-    </ul>
-    <button class="cart-btn">
-      <i class="fas fa-shopping-bag"></i>
-      <span class="cart-count">0</span>
-    </button>
-  </nav>
 
-  <section class="section">
-    <span class="section-eyebrow">What Our Customers Say</span>
-    <h2 class="section-title">Loved by thousands of women</h2>
-    <p class="section-subtitle">Real reviews from real AMAZE customers.</p>
+    <div class="nav-links">
+      <a href="index.html"><i class="fas fa-home"></i> <span data-i18n="nav.home">Home</span></a>
+      <a href="about.html"><i class="fas fa-info-circle"></i> About</a>
+      <a href="benefits.html"><i class="fas fa-leaf"></i> Benefits</a>
+      <a href="testimonials.html" class="active"><i class="fas fa-star"></i> Reviews</a>
+      <a href="index.html#productSection"><i class="fas fa-shopping-bag"></i> Shop</a>
+      <div id="navUserContainer"></div>
+    </div>
 
-    <div class="testimonials">
-      <div class="testimonial">
-        <p class="quote">"AMAZE is truly amazing! I've struggled with sensitive skin for years, but this makeup remover is so gentle. It removes everything in one swipe and leaves my skin feeling soft and hydrated."</p>
-        <span class="verified"><i class="fas fa-check-circle"></i> Verified</span>
-        <div class="author">Sarah Johnson</div>
-        <div class="location">New York, USA</div>
+    <div class="nav-actions">
+      <div class="lang-selector">
+        <i class="fas fa-globe globe-icon"></i>
+        <select id="languageSelector" onchange="LanguageManager.changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ar">العربية</option>
+        </select>
+        <i class="fas fa-chevron-down chevron-icon"></i>
       </div>
 
-      <div class="testimonial">
-        <p class="quote">"I've tried so many makeup removers, but AMAZE is by far the best! It's so gentle and effective. I love that I can just use water with it — no harsh chemicals."</p>
-        <span class="verified"><i class="fas fa-check-circle"></i> Verified</span>
-        <div class="author">Jessica Williams</div>
-        <div class="location">Los Angeles, USA</div>
+      <button class="btn-cart-icon" id="cartToggleBtn">
+        <i class="fas fa-shopping-bag"></i>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main-content" style="padding-top: 100px;">
+  <div class="container">
+
+    <section class="reviews-section">
+      <div class="section-header glass-soft">
+        <span class="section-tag"><i class="fas fa-heart"></i> <span data-i18n="reviews.tag">What Our Customers Say</span></span>
+        <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(28px, 4vw, 40px); font-weight: 300; margin: 8px 0;">
+          Loved by <span style="font-weight: 700; color: #b45f4b;">thousands</span> of women
+        </h2>
+        <p data-i18n="reviews.subtitle" style="color: #5a4a42; font-size: 16px;">Real reviews from real AMAZE customers.</p>
       </div>
 
-      <div class="testimonial">
-        <p class="quote">"AMAZE completely transformed my skincare routine! It removes makeup so gently and doesn't irritate my sensitive skin at all. I highly recommend it to anyone looking for a natural and effective product!"</p>
-        <span class="verified"><i class="fas fa-check-circle"></i> Verified</span>
-        <div class="author">Noura Al-Fahd</div>
-        <div class="location">Riyadh, Saudi Arabia</div>
+      <div class="reviews-grid" id="reviewsGrid">
+        <!-- Populated by JS from api/reviews.php -->
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section style="padding: 20px 0 60px;">
-    <div class="quote-block">
-      <p class="brand-line">AMAZE · Remove, Reuse, AMAZE</p>
-      <h3>"Gentle cleansing. Powerful results."</h3>
-    </div>
-  </section>
+    <section style="padding: 40px 0 60px;">
+      <div class="quote-block" style="text-align: center; padding: 40px 20px; background: rgba(180,95,75,0.04); border-radius: 30px;">
+        <p style="font-size: 14px; letter-spacing: 3px; color: #b45f4b; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">
+          AMAZE · Remove, Reuse, AMAZE
+        </p>
+        <h3 style="font-family: 'Playfair Display', Georgia, serif; font-size: clamp(22px, 3vw, 32px); font-weight: 400; color: #2d2a24; font-style: italic;">
+          "Gentle cleansing. Powerful results."
+        </h3>
+      </div>
+    </section>
 
-  <footer>
-    <div class="footer-brand">AMAZE</div>
-    <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="about.html">About</a>
-      <a href="benefits.html">Benefits</a>
-      <a href="testimonials.html">Reviews</a>
-      <a href="index.html#productSection">Shop</a>
-    </div>
-    <p>© 2025 AMAZE · Clean &amp; Simple</p>
-  </footer>
-</div>
+  </div>
+</main>
 
+<!-- FOOTER -->
+<footer style="text-align: center; padding: 40px 20px; border-top: 1px solid rgba(180,95,75,0.08); margin-top: 40px;">
+  <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 26px; font-weight: 700; letter-spacing: 3px; color: #b45f4b; margin-bottom: 16px;">
+    AMAZE
+  </div>
+  <div class="footer-links" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
+    <a href="index.html" style="color: #8a7a6e; padding: 6px 14px; border-radius: 30px; font-size: 14px;">Home</a>
+    <a href="about.html" style="color: #8a7a6e; padding: 6px 14px; border-radius: 30px; font-size: 14px;">About</a>
+    <a href="benefits.html" style="color: #8a7a6e; padding: 6px 14px; border-radius: 30px; font-size: 14px;">Benefits</a>
+    <a href="testimonials.html" style="color: #8a7a6e; padding: 6px 14px; border-radius: 30px; font-size: 14px;">Reviews</a>
+    <a href="index.html#productSection" style="color: #8a7a6e; padding: 6px 14px; border-radius: 30px; font-size: 14px;">Shop</a>
+  </div>
+  <p style="color: #8a7a6e; font-size: 13px;">© 2025 AMAZE · Clean & Simple</p>
+</footer>
+
+<script src="js/i18n.js"></script>
 <script src="js/script.js"></script>
+<script>
+  /* ------------------------------------------------------------
+     Minimal loader for testimonials.html:
+     loads approved reviews from the API + updates navbar/cart
+     ------------------------------------------------------------ */
+
+  async function initTestimonialsPage() {
+    /* CSRF token (for guest session) */
+    try {
+      const me = await fetchJson('api/auth_user.php?action=me');
+      if (me && me.csrf_token) setCsrfToken(me.csrf_token);
+    } catch (e) {}
+
+    /* Cart badge */
+    try {
+      const cart = JSON.parse(localStorage.getItem('amaze_cart') || '[]');
+      const total = cart.reduce((a, i) => a + (i.quantity || 0), 0);
+      const badge = document.getElementById('cartBadge');
+      if (badge) badge.textContent = total;
+    } catch (e) {}
+
+    /* Load approved reviews */
+    const grid = document.getElementById('reviewsGrid');
+    if (!grid) return;
+
+    let reviews = [];
+    try {
+      const data = await fetchJson('api/reviews.php');
+      if (data.ok) reviews = data.reviews || [];
+    } catch (e) {}
+
+    if (!reviews.length) {
+      grid.innerHTML = fallbackReviewsHtml();
+      return;
+    }
+
+    grid.innerHTML = reviews.map(r => {
+      const rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 5));
+      const stars  = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      return `
+        <div class="review-card glass">
+          <div class="review-stars">${stars}</div>
+          <p class="review-text">"${escapeHtml(r.text)}"</p>
+          <div class="reviewer-info">
+            <div class="reviewer-avatar">
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M35 50 Q50 58 65 50' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E"
+                   alt="${escapeHtml(r.user_name)}">
+            </div>
+            <div>
+              <h4>${escapeHtml(r.user_name)}</h4>
+              <span class="review-location"><i class="fas fa-map-pin"></i> ${escapeHtml(r.location || 'Worldwide')}</span>
+            </div>
+            <span class="review-verified"><i class="fas fa-check-circle"></i> Verified</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function fallbackReviewsHtml() {
+    const samples = [
+      { name: 'Sarah Johnson',   loc: 'New York, USA',      text: 'AMAZE is truly amazing! I\'ve struggled with sensitive skin for years, but this makeup remover is so gentle. It removes everything in one swipe and leaves my skin feeling soft and hydrated.' },
+      { name: 'Jessica Williams',loc: 'Los Angeles, USA',   text: 'I\'ve tried so many makeup removers, but AMAZE is by far the best! It\'s so gentle and effective. I love that I can just use water with it — no harsh chemicals.' },
+      { name: 'Noura Al-Fahd',   loc: 'Riyadh, Saudi Arabia', text: 'AMAZE completely transformed my skincare routine! It removes makeup so gently and doesn\'t irritate my sensitive skin at all. I highly recommend it!' }
+    ];
+    const avatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M35 50 Q50 58 65 50' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E";
+    return samples.map(r => `
+      <div class="review-card glass">
+        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+        <p class="review-text">"${escapeHtml(r.text)}"</p>
+        <div class="reviewer-info">
+          <div class="reviewer-avatar"><img src="${avatar}" alt="${escapeHtml(r.name)}"></div>
+          <div><h4>${escapeHtml(r.name)}</h4><span class="review-location"><i class="fas fa-map-pin"></i> ${escapeHtml(r.loc)}</span></div>
+          <span class="review-verified"><i class="fas fa-check-circle"></i> Verified</span>
+        </div>
+      </div>`).join('');
+  }
+
+  /* Cart icon → cart.html */
+  document.getElementById('cartToggleBtn')?.addEventListener('click', () => {
+    window.location.href = 'cart.html';
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.LanguageManager) LanguageManager.init();
+    initTestimonialsPage();
+  });
+</script>
 </body>
 </html>
