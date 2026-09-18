@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create Account · AMAZE</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+<div class="auth-card">
+  <div class="auth-logo">AMAZE</div>
+  <div class="auth-sub">Join Us</div>
+
+  <div class="auth-icon"><i class="fas fa-user-plus"></i></div>
+  <h2>Create Account</h2>
+  <p class="hint">It takes less than a minute.</p>
+
+  <form id="registerForm" novalidate>
+    <div class="form-group">
+      <label><i class="fas fa-user"></i> Full Name</label>
+      <input type="text" name="name" placeholder="Jane Doe" autocomplete="name" required />
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-envelope"></i> Email</label>
+      <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> Password</label>
+      <input type="password" name="password" placeholder="At least 6 characters" autocomplete="new-password" required />
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-lock"></i> Confirm Password</label>
+      <input type="password" name="password2" placeholder="Repeat your password" autocomplete="new-password" required />
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-globe"></i> Country</label>
+      <select name="country" style="width:100%;padding:13px 18px;border:1px solid rgba(180,95,75,0.15);border-radius:60px;font-size:15px;background:#faf8f6;outline:none;font-family:inherit;">
+        <option value="US">United States</option>
+        <option value="SA">Saudi Arabia</option>
+        <option value="GB">United Kingdom</option>
+        <option value="AE">United Arab Emirates</option>
+        <option value="FR">France</option>
+        <option value="DE">Germany</option>
+      </select>
+    </div>
+    <button type="submit" class="auth-btn">
+      <i class="fas fa-user-plus"></i> Create Account
+    </button>
+    <div class="auth-error" id="authError"></div>
+  </form>
+
+  <div class="auth-switch">
+    Already have an account? <a href="login.html">Sign in</a>
+  </div>
+  <a href="index.html" class="auth-back"><i class="fas fa-arrow-left"></i> Back to website</a>
+</div>
+
+<script src="js/script.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/i18n.js"></script>
+</body>
+</html>

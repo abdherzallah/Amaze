@@ -1,0 +1,44 @@
+# ============================================================
+# AMAZE · Root .htaccess
+# ============================================================
+
+# Block direct access to sensitive backend files
+<FilesMatch "^(config|db|session|helpers|ratelimit)\.php$">
+  Require all denied
+</FilesMatch>
+
+# Block access to .env, .sql, backups
+<FilesMatch "\.(env|git|sql|bak|log|ini)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^\.git">
+  Require all denied
+</FilesMatch>
+
+# Block directory listing
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Force HTTPS (uncomment in production)
+  # RewriteCond %{HTTPS} !=on
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/png  "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType video/mp4  "access plus 1 month"
+  ExpiresByType text/css   "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+</IfModule>

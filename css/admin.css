@@ -401,6 +401,24 @@ table tbody tr:last-child td { border-bottom: 0; }
 .empty-state p { font-size: 16px; font-weight: 500; }
 .empty-state span { font-size: 14px; }
 
+/* Compact empty state (inline) */
+.empty-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 26px 16px;
+  color: #8a7a6e;
+  font-size: 14px;
+  background: rgba(245, 240, 235, 0.3);
+  border-radius: 14px;
+  border: 1px dashed rgba(180, 95, 75, 0.15);
+}
+.empty-compact i {
+  font-size: 22px;
+  color: #dbb8ab;
+}
+
 /* ---------- STOCK ALERTS ---------- */
 .stock-alert-item {
   display: flex;
@@ -490,9 +508,21 @@ table tbody tr:last-child td { border-bottom: 0; }
 .review-item .review-status.approved { background: rgba(45, 125, 70, 0.08); color: #2d7d46; }
 .review-item .review-status.rejected { background: rgba(180, 95, 75, 0.08); color: #b45f4b; }
 .review-item .review-text { margin: 8px 0 4px; font-size: 14px; color: #5f554b; line-height: 1.6; }
-.review-item .review-date { font-size: 12px; color: #8a7a6e; }
+.review-item .review-meta { font-size: 12px; color: #8a7a6e; }
 .review-item .review-user { font-size: 13px; font-weight: 500; color: #b45f4b; }
-.review-actions { display: flex; gap: 8px; margin-top: 10px; }
+.review-item .review-loc  { font-size: 12px; color: #8a7a6e; margin-left: 4px; }
+
+.review-group-empty {
+  padding: 30px 20px;
+  text-align: center;
+  color: #8a7a6e;
+  font-size: 14px;
+  background: rgba(245, 240, 235, 0.3);
+  border-radius: 14px;
+  border: 1px dashed rgba(180, 95, 75, 0.15);
+}
+
+.review-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .review-actions button {
   border: none;
   padding: 6px 18px;
@@ -508,6 +538,165 @@ table tbody tr:last-child td { border-bottom: 0; }
 .review-actions .btn-approve:hover { background: #1f5a32; transform: translateY(-2px); }
 .review-actions .btn-reject { background: #b45f4b; }
 .review-actions .btn-reject:hover { background: #8a3f2f; transform: translateY(-2px); }
+.review-actions .btn-delete-review {
+  background: rgba(180, 95, 75, 0.08);
+  color: #b45f4b;
+}
+.review-actions .btn-delete-review:hover {
+  background: rgba(180, 95, 75, 0.16);
+  transform: translateY(-2px);
+}
+
+/* Review tabs */
+.review-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.review-tab {
+  background: rgba(180, 95, 75, 0.06);
+  border: 1px solid rgba(180, 95, 75, 0.10);
+  color: #8a7a6e;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 60px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.review-tab:hover {
+  background: rgba(180, 95, 75, 0.10);
+  color: #b45f4b;
+}
+.review-tab.active {
+  background: #b45f4b;
+  border-color: #b45f4b;
+  color: #fff;
+}
+.review-tab span {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 30px;
+}
+.review-tab.active span {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- PAGE HEADER (used in Orders / Inventory / Discounts / Reviews) ---------- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-header h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+.page-header h2 i { color: #b45f4b; margin-right: 10px; }
+
+.btn-primary-sm {
+  background: linear-gradient(135deg, #b45f4b, #8a3f2f);
+  border: none;
+  padding: 9px 22px;
+  border-radius: 60px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px -4px rgba(180, 95, 75, 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.btn-primary-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -6px rgba(180, 95, 75, 0.6);
+}
+
+.btn-secondary-sm {
+  background: rgba(180, 95, 75, 0.08);
+  border: 1px solid rgba(180, 95, 75, 0.12);
+  padding: 9px 22px;
+  border-radius: 60px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #b45f4b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+.btn-secondary-sm:hover { background: rgba(180, 95, 75, 0.16); }
+
+/* ---------- PAGES (toggle visibility) ---------- */
+.page { display: none; }
+.page.active { display: block; animation: pageIn 0.3s ease; }
+@keyframes pageIn {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- QUICK ACTIONS ---------- */
+.quick-actions {
+  background: #fff;
+  border-radius: 24px;
+  padding: 22px 26px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+.quick-actions .qa-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8a7a6e;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+.quick-actions .qa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.qa-btn {
+  background: rgba(180, 95, 75, 0.05);
+  border: 1px solid rgba(180, 95, 75, 0.10);
+  border-radius: 14px;
+  padding: 14px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3d352e;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.qa-btn i {
+  color: #b45f4b;
+  font-size: 18px;
+}
+.qa-btn:hover {
+  background: rgba(180, 95, 75, 0.10);
+  border-color: rgba(180, 95, 75, 0.25);
+  transform: translateY(-2px);
+}
 
 /* ============================================================
    DISCOUNTS — admin section + modal
@@ -570,7 +759,13 @@ table tbody tr:last-child td { border-bottom: 0; }
   line-height: 1.7;
   margin-bottom: 12px;
 }
+.discount-card .dc-meta > div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .discount-card .dc-meta i { color: #b45f4b; width: 14px; margin-right: 4px; }
+.discount-card .dc-meta i.fa-users { color: #2d7d46; }
 .discount-card .dc-status {
   display: inline-block;
   font-size: 10px;
@@ -720,199 +915,8 @@ table tbody tr:last-child td { border-bottom: 0; }
 .btn-modal:hover { transform: translateY(-2px); box-shadow: 0 10px 28px -6px rgba(180, 95, 75, 0.6); }
 .btn-modal:active { transform: scale(0.98); }
 
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 992px) {
-  .admin-sidebar { width: 80px; padding: 20px 12px; }
-  .admin-sidebar .logo { font-size: 20px; }
-  .admin-sidebar .logo span { display: none; }
-  .sidebar-menu li a span { display: none; }
-  .sidebar-menu li a { justify-content: center; padding: 12px; }
-  .sidebar-menu li a .badge { display: none; }
-  .sidebar-footer a span { display: none; }
-  .admin-main { margin-left: 80px; padding: 20px; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 600px) {
-  .admin-sidebar { width: 60px; padding: 16px 8px; }
-  .admin-sidebar .logo { font-size: 16px; }
-  .admin-main { margin-left: 60px; padding: 14px; }
-  .stats-grid { grid-template-columns: 1fr; }
-  .admin-header h1 { font-size: 20px; }
-  .section-card { padding: 16px; }
-  .inventory-grid { grid-template-columns: 1fr; }
-  .modal .form-row { grid-template-columns: 1fr; }
-  .discounts-grid { grid-template-columns: 1fr; }
-}
-
-/* ---------- SCROLLBAR ---------- */
-.admin-sidebar::-webkit-scrollbar { width: 4px; }
-.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
-.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
 /* ============================================================
-   DISCOUNT MODAL — enhancements
-   ============================================================ */
-
-.modal .field-hint {
-  display: block;
-  font-size: 11px;
-  color: #8a7a6e;
-  margin-top: 5px;
-  line-height: 1.4;
-}
-
-/* Value input with suffix */
-.value-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.value-input-wrap input {
-  width: 100%;
-  padding-right: 44px !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.5px;
-}
-.value-input-wrap .value-suffix {
-  position: absolute;
-  right: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #b45f4b;
-  pointer-events: none;
-}
-
-/* Quick fills */
-.quick-fills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: -6px 0 16px;
-}
-.quick-fills button {
-  background: rgba(180, 95, 75, 0.06);
-  border: 1px solid rgba(180, 95, 75, 0.12);
-  color: #b45f4b;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.quick-fills button:hover {
-  background: rgba(180, 95, 75, 0.14);
-  border-color: #b45f4b;
-  transform: translateY(-1px);
-}
-.quick-fills button:active { transform: translateY(0); }
-
-/* Toggle switch for Active */
-.switch-row {
-  display: flex !important;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-weight: 500 !important;
-  font-size: 13px !important;
-  color: #3d352e;
-  margin: 0 !important;
-  padding: 10px 14px;
-  background: #faf8f6;
-  border: 1px solid #e8e0da;
-  border-radius: 12px;
-  transition: all 0.2s;
-  user-select: none;
-}
-.switch-row:hover { border-color: #b45f4b; background: #fff; }
-.switch-row input[type="checkbox"] {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-.switch-row .switch {
-  position: relative;
-  flex-shrink: 0;
-  width: 40px;
-  height: 22px;
-  background: #ddd5ce;
-  border-radius: 30px;
-  transition: background 0.2s ease;
-}
-.switch-row .switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease;
-}
-.switch-row input:checked ~ .switch {
-  background: #b45f4b;
-}
-.switch-row input:checked ~ .switch::after {
-  transform: translateX(18px);
-}
-.switch-row .switch-label {
-  font-size: 12px;
-  color: #5f554b;
-  line-height: 1.3;
-}
-
-/* Live preview */
-.discount-preview {
-  background: linear-gradient(135deg, rgba(180, 95, 75, 0.06), rgba(212, 140, 122, 0.04));
-  border: 1px dashed rgba(180, 95, 75, 0.3);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin: 6px 0 18px;
-}
-.discount-preview .preview-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #b45f4b;
-  margin-bottom: 8px;
-}
-.discount-preview .preview-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.discount-preview .preview-code {
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d2a24;
-  letter-spacing: 2px;
-  word-break: break-all;
-}
-.discount-preview .preview-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #b45f4b;
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .quick-fills button { font-size: 11px; padding: 4px 10px; }
-  .discount-preview .preview-code { font-size: 15px; }
-  .discount-preview .preview-value { font-size: 14px; }
-}
-/* ============================================================
-   DISCOUNT MODAL — enhancements
+   DISCOUNT MODAL — enhancements  (SINGLE consolidated block)
    ============================================================ */
 
 .modal .field-hint {
@@ -1017,165 +1021,6 @@ table tbody tr:last-child td { border-bottom: 0; }
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease;
 }
-.switch-row input:checked ~ .switch {
-  background: #b45f4b;
-}
-.switch-row input:checked ~ .switch::after {
-  transform: translateX(18px);
-}
-.switch-row .switch-label {
-  font-size: 12px;
-  color: #5f554b;
-  line-height: 1.3;
-}
-
-/* Live preview */
-.discount-preview {
-  background: linear-gradient(135deg, rgba(180, 95, 75, 0.06), rgba(212, 140, 122, 0.04));
-  border: 1px dashed rgba(180, 95, 75, 0.3);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin: 6px 0 18px;
-}
-.discount-preview .preview-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: #b45f4b;
-  margin-bottom: 8px;
-}
-.discount-preview .preview-body {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.discount-preview .preview-code {
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d2a24;
-  letter-spacing: 2px;
-  word-break: break-all;
-}
-.discount-preview .preview-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #b45f4b;
-  white-space: nowrap;
-}
-
-@media (max-width: 480px) {
-  .quick-fills button { font-size: 11px; padding: 4px 10px; }
-  .discount-preview .preview-code { font-size: 15px; }
-  .discount-preview .preview-value { font-size: 14px; }
-}
-/* ============================================================
-   DISCOUNT MODAL — enhancements
-   ============================================================ */
-
-.modal .field-hint {
-  display: block;
-  font-size: 11px;
-  color: #8a7a6e;
-  margin-top: 5px;
-  line-height: 1.4;
-}
-
-.value-input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.value-input-wrap input {
-  width: 100%;
-  padding-right: 44px !important;
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.5px;
-}
-.value-input-wrap .value-suffix {
-  position: absolute;
-  right: 16px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #b45f4b;
-  pointer-events: none;
-}
-
-.quick-fills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: -4px 0 16px;
-}
-.quick-fills button {
-  background: rgba(180, 95, 75, 0.06);
-  border: 1px solid rgba(180, 95, 75, 0.12);
-  color: #b45f4b;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.quick-fills button:hover {
-  background: rgba(180, 95, 75, 0.14);
-  border-color: #b45f4b;
-  transform: translateY(-1px);
-}
-
-.switch-row {
-  display: flex !important;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-weight: 500 !important;
-  font-size: 13px !important;
-  color: #3d352e;
-  margin: 0 !important;
-  padding: 12px 14px;
-  background: #faf8f6;
-  border: 1px solid #e8e0da;
-  border-radius: 12px;
-  transition: all 0.2s;
-  user-select: none;
-}
-.switch-row:hover { border-color: #b45f4b; background: #fff; }
-.switch-row input[type="checkbox"] {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-.switch-row .switch {
-  position: relative;
-  flex-shrink: 0;
-  width: 40px;
-  height: 22px;
-  background: #ddd5ce;
-  border-radius: 30px;
-  transition: background 0.2s ease;
-}
-.switch-row .switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease;
-}
 .switch-row input:checked ~ .switch { background: #b45f4b; }
 .switch-row input:checked ~ .switch::after { transform: translateX(18px); }
 .switch-row .switch-label {
@@ -1184,6 +1029,7 @@ table tbody tr:last-child td { border-bottom: 0; }
   line-height: 1.3;
 }
 
+/* Live preview (optional — used by JS if present) */
 .discount-preview {
   background: linear-gradient(135deg, rgba(180, 95, 75, 0.06), rgba(212, 140, 122, 0.04));
   border: 1px dashed rgba(180, 95, 75, 0.3);
@@ -1223,19 +1069,36 @@ table tbody tr:last-child td { border-bottom: 0; }
   white-space: nowrap;
 }
 
-/* Unique customers line in the discount card */
-.discount-card .dc-meta > div {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 992px) {
+  .admin-sidebar { width: 80px; padding: 20px 12px; }
+  .admin-sidebar .logo { font-size: 20px; }
+  .admin-sidebar .logo span { display: none; }
+  .sidebar-menu li a span { display: none; }
+  .sidebar-menu li a { justify-content: center; padding: 12px; }
+  .sidebar-menu li a .badge { display: none; }
+  .sidebar-footer a span { display: none; }
+  .admin-main { margin-left: 80px; padding: 20px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
 }
-.discount-card .dc-meta i.fa-users {
-  color: #2d7d46;
+@media (max-width: 600px) {
+  .admin-sidebar { width: 60px; padding: 16px 8px; }
+  .admin-sidebar .logo { font-size: 16px; }
+  .admin-main { margin-left: 60px; padding: 14px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .admin-header h1 { font-size: 20px; }
+  .section-card { padding: 16px; }
+  .inventory-grid { grid-template-columns: 1fr; }
+  .modal .form-row { grid-template-columns: 1fr; }
+  .discounts-grid { grid-template-columns: 1fr; }
 }
-
 @media (max-width: 480px) {
   .quick-fills button { font-size: 11px; padding: 4px 10px; }
   .discount-preview .preview-code { font-size: 15px; }
   .discount-preview .preview-value { font-size: 14px; }
 }
 
+/* ---------- SCROLLBAR ---------- */
+.admin-sidebar::-webkit-scrollbar { width: 4px; }
+.admin-sidebar::-webkit-scrollbar-track { background: transparent; }
+.admin-sidebar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }

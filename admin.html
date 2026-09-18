@@ -12,19 +12,31 @@
 </head>
 <body>
 
+<!-- ============================================================
+     ADMIN AUTH GUARD — promise-based
+     ============================================================ -->
 <script>
-  (function () {
-    const ADMIN_PASSWORD = 'amaze2025';
-    const SESSION_KEY = 'amaze_admin_ok';
+  window.amazeAuthPromise = (async function () {
+    try {
+      const res = await fetch('api/auth.php?action=me', {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+      const data = await res.json();
 
-    if (sessionStorage.getItem(SESSION_KEY) === 'true') return;
+      if (!data.authenticated) {
+        window.location.replace('admin-login.html');
+        return null;
+      }
 
-    const entered = prompt('🔒 Enter admin password:');
-    if (entered === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-    } else {
-      alert('Access denied.');
-      window.location.href = 'index.html';
+      window.__amazeAdmin = data.admin;
+      window.__amazeCsrf  = data.csrf_token || '';
+      console.log('🔒 CSRF token loaded:', window.__amazeCsrf ? 'OK (' + window.__amazeCsrf.length + ' chars)' : 'MISSING');
+      return data.admin;
+    } catch (err) {
+      console.error('Auth check failed:', err);
+      window.location.replace('admin-login.html');
+      return null;
     }
   })();
 </script>
@@ -42,10 +54,9 @@
     <ul class="sidebar-menu">
       <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
       <li><a href="#" data-page="orders"><i class="fas fa-shopping-bag"></i> <span>Orders</span> <span class="badge" id="orderBadge">0</span></a></li>
-      <li><a href="#" data-page="inventory"><i class="fas fa-boxes"></i> <span>Inventory</span></a></li>
-      <li><a href="#" data-page="stock"><i class="fas fa-warehouse"></i> <span>Stock Alerts</span> <span class="badge" id="stockBadge">0</span></a></li>
-      <li><a href="#" data-page="reviews"><i class="fas fa-star"></i> <span>Reviews</span> <span class="badge" id="reviewBadge">0</span></a></li>
+      <li><a href="#" data-page="inventory"><i class="fas fa-boxes"></i> <span>Products</span></a></li>
       <li><a href="#" data-page="discounts"><i class="fas fa-tags"></i> <span>Discounts</span></a></li>
+      <li><a href="#" data-page="reviews"><i class="fas fa-star"></i> <span>Reviews</span> <span class="badge" id="reviewBadge">0</span></a></li>
     </ul>
 
     <div class="sidebar-footer">
@@ -54,123 +65,127 @@
     </div>
   </aside>
 
-  <main class="admin-main" id="adminMain">
+  <main class="admin-main">
+
     <header class="admin-header">
       <div>
-        <h1>Welcome back, <span>Admin</span></h1>
+        <h1>Admin <span>Panel</span></h1>
         <div class="live-indicator"><span class="dot"></span> Live Dashboard</div>
       </div>
       <div class="admin-user">
-        <div class="avatar">A</div>
+        <div class="avatar" id="adminAvatar">A</div>
         <div>
-          <div class="name">Admin</div>
+          <div class="name" id="adminName">Admin</div>
           <div class="role">Store Manager</div>
         </div>
       </div>
     </header>
 
-    <section class="stats-grid" id="statsGrid">
-      <div class="stat-card">
-        <div class="stat-icon orders"><i class="fas fa-shopping-bag"></i></div>
-        <span class="stat-number" id="totalOrders">0</span>
-        <div class="stat-label">Total Orders</div>
-        <span class="stat-change up" id="ordersChange">↑ 0 this month</span>
+    <section class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon orders"><i class="fas fa-shopping-bag"></i></div>
+          <div class="stat-body">
+            <span class="stat-number" id="totalOrders">0</span>
+            <div class="stat-label">Total Orders</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon revenue"><i class="fas fa-dollar-sign"></i></div>
+          <div class="stat-body">
+            <span class="stat-number" id="totalRevenue">$0</span>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon stock"><i class="fas fa-boxes"></i></div>
+          <div class="stat-body">
+            <span class="stat-number" id="totalProducts">0</span>
+            <div class="stat-label">Products</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon discount"><i class="fas fa-tags"></i></div>
+          <div class="stat-body">
+            <span class="stat-number" id="totalDiscounts">0</span>
+            <div class="stat-label">Active Discounts</div>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon stock"><i class="fas fa-boxes"></i></div>
-        <span class="stat-number" id="totalProducts">0</span>
-        <div class="stat-label">Products</div>
-        <span class="stat-change up" id="productsChange">0 total</span>
-      </div>
-    </section>
 
-    <section class="section-card" id="ordersSection">
-      <div class="section-header">
-        <h3><i class="fas fa-shopping-bag"></i> Recent Orders</h3>
-        <button class="btn-sm" onclick="clearAllOrders()">Clear All Orders</button>
+      <div class="quick-actions">
+        <div class="qa-title">Quick Actions</div>
+        <div class="qa-grid">
+          <button class="qa-btn" onclick="goTo('orders')"><i class="fas fa-list"></i><span>View Orders</span></button>
+          <button class="qa-btn" onclick="goTo('inventory'); addProduct();"><i class="fas fa-plus"></i><span>Add Product</span></button>
+          <button class="qa-btn" onclick="goTo('discounts'); openDiscountModal();"><i class="fas fa-tag"></i><span>New Discount</span></button>
+          <button class="qa-btn" onclick="goTo('reviews')"><i class="fas fa-star"></i><span>Review Pending</span></button>
+        </div>
       </div>
-      <div id="ordersContainer">
-        <div class="empty-state">
-          <i class="fas fa-box-open"></i>
-          <p>No orders yet</p>
-          <span>Orders will appear here when customers purchase</span>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+        </div>
+        <div id="recentActivity">
+          <div class="empty-compact">
+            <i class="fas fa-inbox"></i>
+            <span>No recent activity</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section-card" id="inventorySection">
-      <div class="section-header">
-        <h3><i class="fas fa-boxes"></i> Inventory</h3>
-        <button class="btn-sm" onclick="addProduct()">+ Add Product</button>
+    <section class="page" id="page-orders">
+      <div class="page-header">
+        <h2><i class="fas fa-shopping-bag"></i> Orders</h2>
+        <button class="btn-secondary-sm" onclick="clearAllOrders()"><i class="fas fa-trash-alt"></i> Clear All</button>
+      </div>
+      <div class="section-card" id="ordersContainer"></div>
+    </section>
+
+    <section class="page" id="page-inventory">
+      <div class="page-header">
+        <h2><i class="fas fa-boxes"></i> Products</h2>
+        <button class="btn-primary-sm" onclick="addProduct()"><i class="fas fa-plus"></i> Add Product</button>
       </div>
       <div class="inventory-grid" id="inventoryGrid"></div>
     </section>
 
-    <section class="section-card" id="stockSection">
-      <div class="section-header">
-        <h3><i class="fas fa-warehouse"></i> Stock Alerts</h3>
-        <span style="font-size:13px; color:#b45f4b; font-weight:600;" id="stockAlertText">✅ All items in stock</span>
+    <section class="page" id="page-discounts">
+      <div class="page-header">
+        <h2><i class="fas fa-tags"></i> Discount Codes</h2>
+        <button class="btn-primary-sm" onclick="openDiscountModal()"><i class="fas fa-plus"></i> New Code</button>
       </div>
-      <div id="stockAlertsContainer">
-        <div class="empty-state">
-          <i class="fas fa-check-circle" style="color:#2d7d46;"></i>
-          <p>All items are well stocked</p>
-          <span>No alerts at this time</span>
-        </div>
-      </div>
+      <div id="discountsContainer"></div>
     </section>
 
-    <section class="section-card" id="reviewsSection">
-      <div class="section-header">
-        <h3><i class="fas fa-star"></i> Review Management</h3>
-        <span style="font-size:13px; color:#8a7a6e;" id="reviewCountText">0 pending reviews</span>
-      </div>
-      <div id="reviewsContainer">
-        <div class="empty-state">
-          <i class="fas fa-star"></i>
-          <p>No reviews pending</p>
-          <span>All reviews have been processed</span>
+    <section class="page" id="page-reviews">
+      <div class="page-header">
+        <h2><i class="fas fa-star"></i> Reviews</h2>
+        <div class="review-tabs">
+          <button class="review-tab active" data-tab="pending" onclick="switchReviewTab('pending')">
+            Pending <span id="tabPendingCount">0</span>
+          </button>
+          <button class="review-tab" data-tab="approved" onclick="switchReviewTab('approved')">Approved</button>
+          <button class="review-tab" data-tab="rejected" onclick="switchReviewTab('rejected')">Rejected</button>
         </div>
       </div>
-    </section>
-
-    <section class="section-card" id="discountsSection">
-      <div class="section-header">
-        <h3><i class="fas fa-tags"></i> Discount Codes</h3>
-        <button class="btn-sm" onclick="openDiscountModal()">+ New Code</button>
-      </div>
-      <div id="discountsContainer">
-        <div class="empty-state">
-          <i class="fas fa-tags"></i>
-          <p>No discount codes yet</p>
-          <span>Click "+ New Code" to create your first one</span>
-        </div>
-      </div>
+      <div id="reviewsContainer"></div>
     </section>
 
   </main>
 </div>
 
-<!-- DISCOUNT MODAL -->
 <div class="modal-overlay" id="discountModal">
   <div class="modal">
     <button class="modal-close" onclick="closeDiscountModal()">&times;</button>
-
-    <h2 id="discountModalTitle">New Discount Code</h2>
+    <h2>New Discount Code</h2>
     <p class="sub">Create a code customers can apply at checkout.</p>
 
     <div class="form-group">
       <label><i class="fas fa-hashtag"></i> Code <span class="required">*</span></label>
-      <input
-        type="text"
-        id="dcCode"
-        placeholder="e.g. AMAZE20"
-        maxlength="20"
-        autocomplete="off"
-        autocapitalize="characters"
-        spellcheck="false"
-      />
-      <small class="field-hint">Letters &amp; numbers only. Shown to the customer at checkout.</small>
+      <input type="text" id="dcCode" placeholder="e.g. AMAZE20" maxlength="20" autocomplete="off" style="text-transform:uppercase;" />
     </div>
 
     <div class="form-row">
@@ -184,13 +199,13 @@
       <div class="form-group">
         <label><i class="fas fa-coins"></i> Value <span class="required">*</span></label>
         <div class="value-input-wrap">
-          <input type="number" id="dcValue" min="0" step="0.01" placeholder="20" inputmode="decimal" />
+          <input type="number" id="dcValue" min="0" step="0.01" placeholder="20" />
           <span class="value-suffix" id="dcValueSuffix">%</span>
         </div>
       </div>
     </div>
 
-    <div class="quick-fills" id="quickFills">
+    <div class="quick-fills">
       <button type="button" onclick="quickFill(5)">5%</button>
       <button type="button" onclick="quickFill(10)">10%</button>
       <button type="button" onclick="quickFill(15)">15%</button>
@@ -204,12 +219,10 @@
       <div class="form-group">
         <label><i class="fas fa-redo"></i> Max Uses</label>
         <input type="number" id="dcMaxUses" min="1" placeholder="Blank = unlimited" />
-        <small class="field-hint">How many times this code can be used.</small>
       </div>
       <div class="form-group">
         <label><i class="fas fa-calendar"></i> Expires</label>
         <input type="date" id="dcExpires" />
-        <small class="field-hint">Leave blank = never expires.</small>
       </div>
     </div>
 
@@ -217,24 +230,14 @@
       <label class="switch-row">
         <input type="checkbox" id="dcActive" checked />
         <span class="switch"></span>
-        <span class="switch-label">Active (customers can use it immediately)</span>
+        <span class="switch-label">Active</span>
       </label>
     </div>
 
-    <div class="discount-preview" id="discountPreview">
-      <span class="preview-label"><i class="fas fa-eye"></i> Preview</span>
-      <div class="preview-body">
-        <span class="preview-code" id="previewCode">YOURCODE</span>
-        <span class="preview-value" id="previewValue">0% off</span>
-      </div>
-    </div>
-
-    <button class="btn-modal" onclick="saveDiscount()">
-      <i class="fas fa-save"></i> Create Discount
-    </button>
+    <button class="btn-modal" onclick="saveDiscount()"><i class="fas fa-save"></i> Create Discount</button>
   </div>
 </div>
-
+<script src="js/script.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>

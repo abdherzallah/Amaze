@@ -1,423 +1,244 @@
 /* ============================================================
-   AMAZE · main.js  (for index.html)
+   AMAZE · main.js  (for index.html) — backend-aware
    ============================================================ */
 
-/* ============================================================
-   USER SESSION + COUNTRY + CURRENCY
-   ============================================================ */
 let CURRENT_USER     = null;
 let CURRENT_COUNTRY  = 'US';
 let CURRENT_CURRENCY = 'USD';
 let CURRENCY_SYMBOL  = '$';
+let cart             = [];
+let productQty       = 1;
 
+const PRODUCT = { id: 'serum-01', name: 'Radiant Glow Serum', price: 48.00, img: 'images-video/amaze.jpeg' };
+
+/* ---------- SESSION + CURRENCY ---------- */
 async function loadUserSession() {
   try {
-    const res = await fetch('api/auth_user.php?action=me', { credentials: 'same-origin' });
-    const data = await res.json();
-    if (data.authenticated) {
-      CURRENT_USER = data.user;
+    const data = await fetchJson('api/auth_user.php?action=me');
+    if (data && data.csrf_token) setCsrfToken(data.csrf_token);
+    if (data && data.authenticated) {
+      CURRENT_USER    = data.user;
       CURRENT_COUNTRY = data.user.country || 'US';
     }
   } catch (e) {}
-
-  CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
-  CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
-
-  window.AMAZE_COUNTRY  = CURRENT_COUNTRY;
-  window.AMAZE_CURRENCY = CURRENT_CURRENCY;
-  window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
+  applyCurrency();
 }
 
 async function detectCountry() {
   if (CURRENT_USER) return;
   try {
-    const res = await fetch('api/geo.php', { credentials: 'same-origin' });
-    const data = await res.json();
-    if (data.ok && data.country) {
-      CURRENT_COUNTRY  = data.country;
-      CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
-      CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
-
-      window.AMAZE_COUNTRY  = CURRENT_COUNTRY;
-      window.AMAZE_CURRENCY = CURRENT_CURRENCY;
-      window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
-    }
+    const data = await fetchJson('api/geo.php');
+    if (data && data.ok && data.country) CURRENT_COUNTRY = data.country;
   } catch (e) {}
+  applyCurrency();
 }
 
+function applyCurrency() {
+  CURRENT_CURRENCY = CURRENT_COUNTRY === 'SA' ? 'SAR' : 'USD';
+  CURRENCY_SYMBOL  = CURRENT_CURRENCY === 'SAR' ? 'SAR ' : '$';
+  window.AMAZE_COUNTRY  = CURRENT_COUNTRY;
+  window.AMAZE_CURRENCY = CURRENT_CURRENCY;
+  window.AMAZE_SYMBOL   = CURRENCY_SYMBOL;
+}
+
+/* ---------- PRODUCT ---------- */
 async function loadProductFromApi() {
   try {
-    const res = await fetch(`api/products.php?country=${CURRENT_COUNTRY}`, { credentials: 'same-origin' });
-    const data = await res.json();
+    const data = await fetchJson(`api/products.php?country=${CURRENT_COUNTRY}`);
     if (!data.ok || !data.products || !data.products.length) return;
-
     const p = data.products[0];
-    const sym = CURRENCY_SYMBOL;
-
     const priceEl = document.querySelector('.product-price');
-    if (priceEl) {
-      priceEl.innerHTML = `${sym}${Number(p.price_display).toFixed(2)}`;
-    }
-
+    if (priceEl) priceEl.innerHTML = `${CURRENCY_SYMBOL}${Number(p.price_display).toFixed(2)}`;
     window.AMAZE_PRODUCT = p;
-
-    try {
-      localStorage.setItem('amaze_product', JSON.stringify({
-        id: p.id,
-        name: p.name,
-        image: p.image,
-        price_display: p.price_display,
-        bundle_qty: p.bundle_qty,
-        bundle_price: p.bundle_price,
-        currency: p.currency,
-        country: CURRENT_COUNTRY
-      }));
-    } catch (e) {}
-  } catch (e) {
-    console.error('Product fetch failed:', e);
-  }
+  } catch (e) { console.error('Product fetch failed:', e); }
 }
 
+/* ---------- NAVBAR ---------- */
 function updateNavbar() {
-  const navUserContainer = document.getElementById('navUserContainer');
-  if (!navUserContainer) return;
+  const nav = document.getElementById('navUserContainer');
+  if (!nav) return;
 
   if (CURRENT_USER) {
     const initials = CURRENT_USER.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    navUserContainer.innerHTML = `
+    nav.innerHTML = `
       <div class="nav-user">
-        <div class="user-avatar">${initials}</div>
-        <span class="user-name">${CURRENT_USER.name}</span>
-        <a class="logout-link" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></a>
-      </div>
-    `;
+        <div class="user-avatar">${escapeHtml(initials)}</div>
+        <span class="user-name">${escapeHtml(CURRENT_USER.name)}</span>
+        <a class="logout-link" onclick="logoutUser()" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
+      </div>`;
   } else {
-    navUserContainer.innerHTML = `
+    nav.innerHTML = `
       <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
-      <a href="register.html" class="btn-register"><i class="fas fa-user-plus"></i> Register</a>
-    `;
+      <a href="register.html" class="btn-register"><i class="fas fa-user-plus"></i> Register</a>`;
   }
 }
 
 async function logoutUser() {
   if (!confirm('Log out?')) return;
-  try {
-    await fetch('api/auth_user.php?action=logout', { method: 'POST', credentials: 'same-origin' });
-  } catch (e) {}
+  try { await fetchJson('api/auth_user.php?action=logout', { method: 'POST', body: {} }); } catch (e) {}
   window.location.href = 'index.html';
 }
 window.logoutUser = logoutUser;
 
-/* ============================================================
-   STATE
-   ============================================================ */
-let cart = [];
-let productQty = 1;
-
-const PRODUCT = {
-  id: 'serum-01',
-  name: 'Radiant Glow Serum',
-  price: 48.00,
-  img: 'images-video/amaze.jpeg'
-};
-
-function fixImgPath(img) {
-  if (!img) return '';
-  return img.replace(/(^|\/)image-video\//, '$1images-video/');
+/* ---------- TOAST ---------- */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 3500);
 }
+window.showToast = showToast;
 
-function showToast(messageOrKey, type = 'success') {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-  let msg = messageOrKey;
-  if (window.LanguageManager && typeof messageOrKey === 'string') {
-    const translated = LanguageManager.t(messageOrKey);
-    if (translated !== messageOrKey) msg = translated;
-  }
-  toast.textContent = msg;
-  toast.className = 'toast ' + type;
-  setTimeout(() => toast.classList.add('show'), 10);
-  setTimeout(() => toast.classList.remove('show'), 3500);
+/* ---------- CART ---------- */
+function loadCart() {
+  try { cart = JSON.parse(localStorage.getItem('amaze_cart') || '[]'); } catch (e) { cart = []; }
+  if (!Array.isArray(cart)) cart = [];
+  updateCartUI();
 }
+function saveCart() { localStorage.setItem('amaze_cart', JSON.stringify(cart)); }
 
-/* ============================================================
-   CART UI
-   ============================================================ */
 function updateCartUI() {
-  const cartBadge = document.getElementById('cartBadge');
-  const cartItemsContainer = document.getElementById('cartItemsContainer');
-  const cartTotalWrapper = document.getElementById('cartTotalWrapper');
-  const cartTotalPrice = document.getElementById('cartTotalPrice');
-  const cartItemCount = document.getElementById('cartItemCount');
+  const badge = document.getElementById('cartBadge');
+  const c     = document.getElementById('cartItemsContainer');
+  const wrap  = document.getElementById('cartTotalWrapper');
+  const price = document.getElementById('cartTotalPrice');
+  const count = document.getElementById('cartItemCount');
 
-  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
-  if (cartBadge) cartBadge.textContent = totalItems;
+  const totalItems = cart.reduce((a, i) => a + i.quantity, 0);
+  if (badge) badge.textContent = totalItems;
+  if (count) count.textContent = totalItems + ' ' + (window.LanguageManager ? LanguageManager.t('cart.items') : 'items');
 
-  const itemsLabel = window.LanguageManager ? LanguageManager.t('cart.items') : 'items';
-  if (cartItemCount) cartItemCount.textContent = totalItems + ' ' + itemsLabel;
-
-  if (!cartItemsContainer) return;
-
-  const sym = window.AMAZE_SYMBOL || '$';
+  if (!c) return;
+  const sym = CURRENCY_SYMBOL;
 
   if (cart.length === 0) {
-    const emptyText = window.LanguageManager ? LanguageManager.t('cart.empty') : 'Your cart is empty';
-    const emptySub  = window.LanguageManager ? LanguageManager.t('cart.emptySub') : 'Start your glow journey.';
-    cartItemsContainer.innerHTML = `
-      <div class="cart-empty">
-        <i class="fas fa-box-open"></i>
-        <p>${emptyText}</p>
-        <span>${emptySub}</span>
-      </div>
-    `;
-    if (cartTotalWrapper) cartTotalWrapper.classList.add('hidden');
+    c.innerHTML = `<div class="cart-empty"><i class="fas fa-box-open"></i><p>Your cart is empty</p><span>Start your glow journey.</span></div>`;
+    if (wrap) wrap.classList.add('hidden');
     return;
   }
 
-  let html = '';
-  let total = 0;
-  cart.forEach((item, index) => {
-    const itemTotal = item.price * item.quantity;
-    total += itemTotal;
-    const safeImg = fixImgPath(item.img) || 'images-video/amaze.jpeg';
-
+  let html = '', total = 0;
+  cart.forEach((item, i) => {
+    const it = item.price * item.quantity;
+    total += it;
     html += `
       <div class="cart-item">
         <div class="cart-item-info">
-          <img src="${safeImg}" alt="${item.name}" onerror="this.onerror=null;this.src='images-video/amaze.jpeg'">
-          <div><strong>${item.name}</strong> × ${item.quantity} <span style="color:#8a7a6e;">${sym}${itemTotal.toFixed(2)}</span></div>
+          <img src="${escapeHtml(item.img || 'images-video/amaze.jpeg')}" alt="${escapeHtml(item.name)}"
+               onerror="this.onerror=null;this.src='images-video/amaze.jpeg'">
+          <div><strong>${escapeHtml(item.name)}</strong> × ${item.quantity}
+            <span style="color:#8a7a6e;">${sym}${it.toFixed(2)}</span></div>
         </div>
-        <button class="cart-item-remove" data-index="${index}"><i class="fas fa-trash-alt"></i></button>
-      </div>
-    `;
+        <button class="cart-item-remove" data-index="${i}"><i class="fas fa-trash-alt"></i></button>
+      </div>`;
   });
-
-  cartItemsContainer.innerHTML = html;
-  if (cartTotalWrapper) cartTotalWrapper.classList.remove('hidden');
-  if (cartTotalPrice) cartTotalPrice.textContent = sym + total.toFixed(2);
+  c.innerHTML = html;
+  if (wrap) wrap.classList.remove('hidden');
+  if (price) price.textContent = sym + total.toFixed(2);
 
   document.querySelectorAll('.cart-item-remove').forEach(btn => {
     btn.addEventListener('click', function () {
-      const idx = parseInt(this.dataset.index, 10);
-      cart.splice(idx, 1);
-      localStorage.setItem('amaze_cart', JSON.stringify(cart));
-      updateCartUI();
-      showToast('toast.itemRemoved', 'warning');
+      cart.splice(parseInt(this.dataset.index, 10), 1);
+      saveCart(); updateCartUI();
+      showToast('Item removed');
     });
   });
 }
 
-function addToCart(quantity) {
-  const product = window.AMAZE_PRODUCT;
-  const price = product ? Number(product.price_display) : 48.00;
-  const id    = product ? product.id : PRODUCT.id;
-  const name  = product ? product.name : PRODUCT.name;
-  const img   = product ? product.image : PRODUCT.img;
-
-  const existing = cart.find(item => item.id === id);
-  if (existing) {
-    existing.quantity += quantity;
-  } else {
-    cart.push({ id, name, price, img, quantity });
-  }
-
-  localStorage.setItem('amaze_cart', JSON.stringify(cart));
-  updateCartUI();
-  showToast('toast.addedToCart');
+function addToCart(q) {
+  const p = window.AMAZE_PRODUCT;
+  const price = p ? Number(p.price_display) : 48.00;
+  const id    = p ? p.id : PRODUCT.id;
+  const name  = p ? p.name : PRODUCT.name;
+  const img   = p ? p.image : PRODUCT.img;
+  const ex    = cart.find(i => i.id === id);
+  if (ex) ex.quantity += q;
+  else cart.push({ id, name, price, img, quantity: q });
+  saveCart(); updateCartUI();
+  showToast('Added to cart!');
 }
 
-function loadCart() {
-  const savedCart = localStorage.getItem('amaze_cart');
-  if (savedCart) {
-    try { cart = JSON.parse(savedCart); } catch (e) { cart = []; }
-  }
-  updateCartUI();
-}
-
-/* ============================================================
-   REVIEWS
-   ============================================================ */
-function loadApprovedReviews() {
-  const reviews = JSON.parse(localStorage.getItem('amaze_reviews') || '[]');
-  const approved = reviews.filter(r => r.status === 'approved');
+/* ---------- REVIEWS ---------- */
+async function loadApprovedReviews() {
   const grid = document.getElementById('reviewsGrid');
   if (!grid) return;
+  const verifiedLabel = window.LanguageManager ? LanguageManager.t('reviews.verified') : 'Verified';
 
-  const verifiedLabel = window.LanguageManager
-    ? LanguageManager.t('reviews.verified')
-    : 'Verified';
+  let reviews = [];
+  try {
+    const data = await fetchJson('api/reviews.php');
+    if (data.ok) reviews = data.reviews || [];
+  } catch (e) {}
 
-  if (approved.length === 0) {
-    grid.innerHTML = `
-      <div class="review-card glass">
-        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-        <p class="review-text">"AMAZE is truly amazing! I've struggled with sensitive skin for years, but this makeup remover is so gentle. It removes everything in one swipe and leaves my skin feeling soft and hydrated."</p>
-        <div class="reviewer-info">
-          <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M35 50 Q50 58 65 50' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Sarah" /></div>
-          <div><h4>Sarah Johnson</h4><span class="review-location"><i class="fas fa-map-pin"></i> New York, USA</span></div>
-          <span class="review-verified"><i class="fas fa-check-circle"></i> ${verifiedLabel}</span>
-        </div>
-      </div>
-      <div class="review-card glass">
-        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-        <p class="review-text">"I've tried so many makeup removers, but AMAZE is by far the best! It's so gentle and effective. I love that I can just use water with it - no harsh chemicals."</p>
-        <div class="reviewer-info">
-          <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M40 48 Q50 55 60 48' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Jessica" /></div>
-          <div><h4>Jessica Williams</h4><span class="review-location"><i class="fas fa-map-pin"></i> Los Angeles, USA</span></div>
-          <span class="review-verified"><i class="fas fa-check-circle"></i> ${verifiedLabel}</span>
-        </div>
-      </div>
-      <div class="review-card glass">
-        <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-        <p class="review-text">"AMAZE completely transformed my skincare routine! It removes makeup so gently and doesn't irritate my sensitive skin at all. I highly recommend it to anyone looking for a natural and effective product!"</p>
-        <div class="reviewer-info">
-          <div class="reviewer-avatar"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M38 52 Q50 60 62 52' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Noura" /></div>
-          <div><h4>Noura Al-Fahd</h4><span class="review-location"><i class="fas fa-map-pin"></i> Riyadh, Saudi Arabia</span></div>
-          <span class="review-verified"><i class="fas fa-check-circle"></i> ${verifiedLabel}</span>
-        </div>
-      </div>
-    `;
-    return;
-  }
+  if (!reviews.length) { grid.innerHTML = defaultReviewsHtml(verifiedLabel); return; }
 
-  let html = '';
-  approved.slice().reverse().forEach(review => {
-    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-    html += `
+  grid.innerHTML = reviews.slice(0, 6).map(r => {
+    const rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 5));
+    const stars  = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    return `
       <div class="review-card glass">
         <div class="review-stars">${stars}</div>
-        <p class="review-text">"${review.text}"</p>
+        <p class="review-text">"${escapeHtml(r.text)}"</p>
         <div class="reviewer-info">
           <div class="reviewer-avatar">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3Ccircle cx='35' cy='35' r='4' fill='%232d2a24'/%3E%3Ccircle cx='65' cy='35' r='4' fill='%232d2a24'/%3E%3Cpath d='M35 50 Q50 58 65 50' stroke='%232d2a24' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="${review.userName}" />
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3C/svg%3E"
+                 alt="${escapeHtml(r.user_name)}">
           </div>
-          <div>
-            <h4>${review.userName}</h4>
-            <span class="review-location"><i class="fas fa-map-pin"></i> ${review.location || 'Worldwide'}</span>
-          </div>
+          <div><h4>${escapeHtml(r.user_name)}</h4>
+            <span class="review-location"><i class="fas fa-map-pin"></i> ${escapeHtml(r.location || 'Worldwide')}</span></div>
           <span class="review-verified"><i class="fas fa-check-circle"></i> ${verifiedLabel}</span>
         </div>
+      </div>`;
+  }).join('');
+}
+
+function defaultReviewsHtml(v) {
+  const s = [
+    { name: 'Sarah Johnson',    loc: 'New York, USA',      text: 'AMAZE is truly amazing! I\'ve struggled with sensitive skin for years, but this makeup remover is so gentle.' },
+    { name: 'Jessica Williams', loc: 'Los Angeles, USA',   text: 'I\'ve tried so many makeup removers, but AMAZE is by far the best! So gentle and effective.' },
+    { name: 'Noura Al-Fahd',    loc: 'Riyadh, Saudi Arabia', text: 'AMAZE completely transformed my skincare routine! It removes makeup so gently.' }
+  ];
+  const a = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='30' fill='%23dbb8ab'/%3E%3C/svg%3E";
+  return s.map(r => `
+    <div class="review-card glass">
+      <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+      <p class="review-text">"${escapeHtml(r.text)}"</p>
+      <div class="reviewer-info">
+        <div class="reviewer-avatar"><img src="${a}" alt="${escapeHtml(r.name)}"></div>
+        <div><h4>${escapeHtml(r.name)}</h4><span class="review-location"><i class="fas fa-map-pin"></i> ${escapeHtml(r.loc)}</span></div>
+        <span class="review-verified"><i class="fas fa-check-circle"></i> ${v}</span>
       </div>
-    `;
-  });
-
-  grid.innerHTML = html;
+    </div>`).join('');
 }
 
-function closeAllModals() {
-  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
-}
-function openModal(modal) {
-  closeAllModals();
-  if (modal) modal.classList.add('active');
-}
-
-/* ============================================================
-   BACKGROUND VIDEO — mobile-safe
-   ============================================================ */
+/* ---------- VIDEO ---------- */
 function initBackgroundVideo() {
   const video   = document.getElementById('bgVideo');
   const overlay = document.querySelector('.video-overlay');
   if (!video) return;
-
   video.muted = true;
   video.setAttribute('muted', '');
   video.setAttribute('playsinline', '');
-  video.setAttribute('webkit-playsinline', '');
+  video.play().catch(() => {});
 
-  const attempt = video.play();
-  if (attempt && attempt.catch) {
-    attempt.catch((err) => {
-      console.warn('Video autoplay blocked:', err.message);
-      setTimeout(() => video.play().catch(() => {}), 500);
-    });
-  }
-
-  /* Retry play on first user interaction (iOS) */
-  const retryOnInteraction = () => {
-    if (video.paused) video.play().catch(() => {});
-    document.removeEventListener('touchstart', retryOnInteraction);
-    document.removeEventListener('scroll', retryOnInteraction);
-    document.removeEventListener('click', retryOnInteraction);
-  };
-  document.addEventListener('touchstart', retryOnInteraction, { passive: true });
-  document.addEventListener('scroll', retryOnInteraction, { passive: true });
-  document.addEventListener('click', retryOnInteraction, { passive: true });
-
-  video.addEventListener('error', () => {
-    console.error('Video failed to load. Check images-video/Amaze1.mp4 exists.');
-    video.style.display = 'none';
-  });
-
-  video.addEventListener('loadedmetadata', () => {
-    if (video.videoWidth > 0 && video.videoHeight > 0) {
-      console.log('🎥 Video: ' + video.videoWidth + '×' + video.videoHeight +
-                  ' (' + Math.round(video.duration) + 's)');
-    }
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) video.pause();
-    else video.play().catch(() => {});
-  });
-
-  /* Parallax drift only on desktop — mobile keeps the video fixed */
-  const isMobile = window.matchMedia('(max-width: 768px)').matches
-                || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-  if (!isMobile) {
-    let ticking = false;
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const scrollY = window.scrollY || window.pageYOffset;
-        const vh = window.innerHeight;
-        const progress = Math.min(scrollY / vh, 3);
-
-        video.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.15}px)) translateZ(0)`;
-
-        if (overlay) {
-          const dim = Math.min(0.45 + progress * 0.1, 0.75);
-          overlay.style.background =
-            `linear-gradient(to bottom,
-              rgba(25, 15, 12, ${dim}) 0%,
-              rgba(25, 15, 12, ${dim + 0.1}) 50%,
-              rgba(25, 15, 12, ${Math.min(dim + 0.2, 0.85)}) 100%)`;
-        }
-        ticking = false;
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    onScroll();
-  } else {
-    if (overlay) {
-      overlay.style.background =
-        `linear-gradient(to bottom,
-          rgba(25, 15, 12, 0.5) 0%,
-          rgba(25, 15, 12, 0.6) 50%,
-          rgba(25, 15, 12, 0.75) 100%)`;
-    }
-  }
+  const retry = () => { if (video.paused) video.play().catch(() => {}); };
+  document.addEventListener('touchstart', retry, { passive: true, once: true });
+  document.addEventListener('click', retry, { passive: true, once: true });
+  video.addEventListener('error', () => { video.style.display = 'none'; });
 }
 
-/* ============================================================
-   INIT
-   ============================================================ */
+/* ---------- INIT ---------- */
 document.addEventListener('DOMContentLoaded', async () => {
   initBackgroundVideo();
-
   await loadUserSession();
   await detectCountry();
   await loadProductFromApi();
-
   updateNavbar();
-
-  if (window.LanguageManager) LanguageManager.init();
-
   loadCart();
   loadApprovedReviews();
+  if (window.LanguageManager) LanguageManager.init();
 
   window.addEventListener('scroll', () => {
     document.querySelector('.navbar-fixed')?.classList.toggle('scrolled', window.scrollY > 40);
@@ -430,50 +251,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('qtyIncrease')?.addEventListener('click', () => {
     productQty++; qtyDisplay.textContent = productQty;
   });
-
   document.getElementById('addToCartBtn')?.addEventListener('click', () => {
     const qty = parseInt(qtyDisplay?.textContent, 10) || 1;
     addToCart(qty);
     productQty = 1;
     if (qtyDisplay) qtyDisplay.textContent = '1';
   });
-
   document.getElementById('clearCartBtn')?.addEventListener('click', () => {
-    if (cart.length === 0) return;
-    if (confirm('⚠️ Are you sure you want to clear your cart?')) {
-      cart = [];
-      localStorage.setItem('amaze_cart', JSON.stringify(cart));
-      updateCartUI();
-      showToast('toast.cartCleared');
+    if (!cart.length) return;
+    if (confirm('Clear your cart?')) {
+      cart = []; saveCart(); updateCartUI(); showToast('Cart cleared');
     }
   });
-
   document.getElementById('cartToggleBtn')?.addEventListener('click', () => {
     window.location.href = 'cart.html';
   });
-
-  document.getElementById('scrollToProduct')?.addEventListener('click', () => {
-    document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
-  });
-  document.getElementById('scrollToProductBtn')?.addEventListener('click', () => {
-    document.getElementById('productSection')?.scrollIntoView({ behavior: 'smooth' });
-  });
-
-  document.getElementById('aboutLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('aboutSection')?.scrollIntoView({ behavior: 'smooth' });
-  });
-
+  document.getElementById('scrollToProduct')?.addEventListener('click', () => scrollToId('productSection'));
+  document.getElementById('scrollToProductBtn')?.addEventListener('click', () => scrollToId('productSection'));
+  document.getElementById('aboutLink')?.addEventListener('click', (e) => { e.preventDefault(); scrollToId('aboutSection'); });
   document.getElementById('closeProfileModal')?.addEventListener('click', closeAllModals);
   document.querySelectorAll('.modal-overlay').forEach(o => {
     o.addEventListener('click', function (e) { if (e.target === this) closeAllModals(); });
   });
-
-  window.addEventListener('languageChanged', () => {
-    updateCartUI();
-    loadApprovedReviews();
-  });
+  window.addEventListener('languageChanged', () => { updateCartUI(); loadApprovedReviews(); });
 });
+
+function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+window.closeAllModals = closeAllModals;
 
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {

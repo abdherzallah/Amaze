@@ -445,25 +445,26 @@ const LanguageManager = {
   current: 'en',
 
   t(key) {
-    const dict = window.TRANSLATIONS?.[this.current] || {};
-    return dict[key] || window.TRANSLATIONS?.en?.[key] || key;
+    const dict = (window.TRANSLATIONS && window.TRANSLATIONS[this.current]) || {};
+    const fallback = (window.TRANSLATIONS && window.TRANSLATIONS.en) || {};
+    return dict[key] !== undefined ? dict[key] : (fallback[key] !== undefined ? fallback[key] : key);
   },
 
   apply() {
-    const dict = window.TRANSLATIONS?.[this.current] || {};
-    const fallback = window.TRANSLATIONS?.en || {};
+    const dict = (window.TRANSLATIONS && window.TRANSLATIONS[this.current]) || {};
+    const fallback = (window.TRANSLATIONS && window.TRANSLATIONS.en) || {};
 
     // Translate text content
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
-      const text = dict[key] ?? fallback[key];
+      const text = dict[key] !== undefined ? dict[key] : fallback[key];
       if (text !== undefined) el.innerHTML = text;
     });
 
     // Translate placeholders
     document.querySelectorAll('[data-i18n-ph]').forEach(el => {
       const key = el.getAttribute('data-i18n-ph');
-      const text = dict[key] ?? fallback[key];
+      const text = dict[key] !== undefined ? dict[key] : fallback[key];
       if (text !== undefined) el.setAttribute('placeholder', text);
     });
 
@@ -478,20 +479,20 @@ const LanguageManager = {
   },
 
   changeLanguage(lang) {
-    if (!window.TRANSLATIONS?.[lang]) lang = 'en';
+    if (!window.TRANSLATIONS || !window.TRANSLATIONS[lang]) lang = 'en';
     this.current = lang;
     localStorage.setItem('amaze_lang', lang);
     this.apply();
 
     const names = { en: 'English', es: 'Español', ar: 'العربية' };
-    if (typeof showToast === 'function') {
-      showToast('🌐 ' + this.t('toast.languageChanged') + ' ' + names[lang]);
+    if (typeof window.showToast === 'function') {
+      window.showToast('🌐 ' + this.t('toast.languageChanged') + ' ' + names[lang]);
     }
   },
 
   init() {
     const saved = localStorage.getItem('amaze_lang') || 'en';
-    this.current = window.TRANSLATIONS?.[saved] ? saved : 'en';
+    this.current = (window.TRANSLATIONS && window.TRANSLATIONS[saved]) ? saved : 'en';
     const sel = document.getElementById('languageSelector');
     if (sel) sel.value = this.current;
     this.apply();

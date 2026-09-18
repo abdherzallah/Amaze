@@ -4,214 +4,78 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Admin Login · AMAZE</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/style.css" />
-<style>
-  .admin-login-wrap {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(180,95,75,0.08), transparent 45%),
-      radial-gradient(circle at 80% 80%, rgba(212,140,122,0.06), transparent 45%),
-      #fcf8f5;
-  }
-  .admin-login-card {
-    max-width: 420px;
-    width: 100%;
-    background: #fff;
-    border: 1px solid rgba(180,95,75,0.08);
-    border-radius: 32px;
-    padding: 44px 38px 38px;
-    box-shadow: 0 24px 60px -20px rgba(180,95,75,0.18);
-    text-align: center;
-    position: relative;
-    animation: fadeUp 0.4s ease;
-  }
-  .admin-login-card::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 60px; height: 3px;
-    background: linear-gradient(90deg, #b45f4b, #d48c7a);
-    border-radius: 0 0 4px 4px;
-  }
-  .admin-login-logo {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    background: linear-gradient(135deg, #b45f4b, #d48c7a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
-  }
-  .admin-login-sub {
-    font-size: 12px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #8a7a6e;
-    margin-bottom: 32px;
-  }
-  .admin-login-icon {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    background: rgba(180,95,75,0.08);
-    color: #b45f4b;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    margin: 0 auto 20px;
-  }
-  .admin-login-card h2 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .admin-login-card .hint {
-    font-size: 13px;
-    color: #8a7a6e;
-    margin-bottom: 24px;
-  }
-  .admin-login-card form { text-align: left; }
-  .admin-login-card .form-group { margin-bottom: 16px; }
-  .admin-login-card label {
-    display: block;
-    font-weight: 500;
-    font-size: 13px;
-    color: #3d352e;
-    margin-bottom: 6px;
-  }
-  .admin-login-card label i { color: #b45f4b; margin-right: 6px; }
-  .admin-login-card input {
-    width: 100%;
-    padding: 13px 18px;
-    border: 1px solid rgba(180,95,75,0.15);
-    border-radius: 60px;
-    font-size: 15px;
-    background: #faf8f6;
-    outline: none;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.25s ease;
-  }
-  .admin-login-card input:focus {
-    border-color: #b45f4b;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(180,95,75,0.08);
-  }
-  .admin-login-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #b45f4b, #8a3f2f);
-    color: #fff;
-    border: none;
-    padding: 15px;
-    border-radius: 60px;
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin-top: 8px;
-    box-shadow: 0 8px 24px -6px rgba(180,95,75,0.5);
-    transition: all 0.3s ease;
-  }
-  .admin-login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px -6px rgba(180,95,75,0.6);
-  }
-  .admin-login-err {
-    color: #b45f4b;
-    font-size: 13px;
-    margin-top: 14px;
-    min-height: 18px;
-    font-weight: 500;
-  }
-  .admin-login-back {
-    display: block;
-    margin-top: 26px;
-    font-size: 13px;
-    color: #8a7a6e;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .admin-login-back:hover { color: #b45f4b; }
-  .admin-login-back i { margin-right: 6px; }
-</style>
+<link rel="stylesheet" href="css/auth.css" />
 </head>
 <body>
 
-<div class="admin-login-wrap">
-  <div class="admin-login-card">
-    <div class="admin-login-logo">AMAZE</div>
-    <div class="admin-login-sub">Admin Panel</div>
+<div class="auth-card">
+  <div class="auth-logo">AMAZE</div>
+  <div class="auth-sub">Admin Panel</div>
 
-    <div class="admin-login-icon"><i class="fas fa-lock"></i></div>
-    <h2>Restricted Access</h2>
-    <p class="hint">Authorized personnel only.</p>
+  <div class="auth-icon"><i class="fas fa-lock"></i></div>
+  <h2>Restricted Access</h2>
+  <p class="hint">Authorized personnel only.</p>
 
-    <form id="adminLoginForm">
-      <div class="form-group">
-        <label><i class="fas fa-user"></i> Admin Username</label>
-        <input type="text" id="adminUser" placeholder="Enter admin username" autocomplete="off" required />
-      </div>
-      <div class="form-group">
-        <label><i class="fas fa-key"></i> Admin Password</label>
-        <input type="password" id="adminPass" placeholder="••••••••" required />
-      </div>
-      <button type="submit" class="admin-login-btn">
-        <i class="fas fa-sign-in-alt"></i> Enter Dashboard
-      </button>
-      <div class="admin-login-err" id="adminErr"></div>
-    </form>
+  <form id="adminLoginForm" novalidate>
+    <div class="form-group">
+      <label><i class="fas fa-user"></i> Admin Username</label>
+      <input type="text" id="adminUser" placeholder="Enter admin username" autocomplete="username" required />
+    </div>
+    <div class="form-group">
+      <label><i class="fas fa-key"></i> Admin Password</label>
+      <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password" required />
+    </div>
+    <button type="submit" class="auth-btn">
+      <i class="fas fa-sign-in-alt"></i> Enter Dashboard
+    </button>
+    <div class="auth-error" id="adminErr"></div>
+  </form>
 
-    <a href="index.html" class="admin-login-back">
-      <i class="fas fa-arrow-left"></i> Back to website
-    </a>
-  </div>
+  <a href="index.html" class="auth-back"><i class="fas fa-arrow-left"></i> Back to website</a>
 </div>
 
+<script src="js/script.js"></script>
 <script>
-  // Admin credentials
-  const ADMIN_USER = 'admin';
-  const ADMIN_PASS = 'amaze2025';
-
-  // If already logged in as admin, skip to dashboard
-  const existing = JSON.parse(localStorage.getItem('amaze_current_user') || 'null');
-  if (existing && existing.isAdmin) {
-    window.location.href = 'admin.html';
-  }
-
-  document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+  document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const u = document.getElementById('adminUser').value.trim();
-    const p = document.getElementById('adminPass').value;
-    const err = document.getElementById('adminErr');
 
-    if (u === ADMIN_USER && p === ADMIN_PASS) {
-      const adminSession = {
-        name: 'Admin',
-        email: 'admin@amaze.com',
-        isAdmin: true,
-        loginTime: Date.now()
-      };
-      localStorage.setItem('amaze_current_user', JSON.stringify(adminSession));
-      err.style.color = '#2d7d46';
-      err.textContent = '✓ Access granted. Redirecting…';
-      setTimeout(() => window.location.href = 'admin.html', 500);
-    } else {
+    const u   = document.getElementById('adminUser').value.trim();
+    const p   = document.getElementById('adminPass').value;
+    const err = document.getElementById('adminErr');
+    const btn = e.target.querySelector('button[type="submit"]');
+
+    err.textContent = '';
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking…';
+
+    try {
+      const data = await fetchJson('api/auth.php?action=login', {
+        method: 'POST',
+        body: { username: u, password: p }
+      });
+
+      if (data.ok) {
+        err.style.color = '#2d7d46';
+        err.textContent = '✓ Access granted. Redirecting…';
+        setTimeout(() => { window.location.href = 'admin.html'; }, 500);
+      } else {
+        err.style.color = '#b45f4b';
+        err.textContent = '✗ ' + (data.error || 'Invalid credentials');
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    } catch (e2) {
       err.style.color = '#b45f4b';
-      err.textContent = '✗ Invalid credentials. Access denied.';
+      err.textContent = '✗ ' + (e2.message || 'Login failed');
+      btn.disabled = false;
+      btn.innerHTML = original;
     }
   });
-  
 </script>
-
 </body>
 </html>
