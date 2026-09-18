@@ -1,0 +1,4 @@
+<FilesMatch "^(config|db|session|helpers|helpers_core|ratelimit)\.php$">
+  Require all denied
+</FilesMatch>
+Options -Indexes

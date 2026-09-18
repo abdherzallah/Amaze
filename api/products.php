@@ -45,16 +45,13 @@ if ($method === 'GET') {
 }
 
 /* ============================================================
-   Everything below requires admin + CSRF
+   Admin + CSRF
    ============================================================ */
 require_admin();
 
-/* ============================================================
-   POST — create a new product
-   Body: { name, sku, stock, price_usd, price_sar, image?, description? }
-   ============================================================ */
+/* POST — create product */
 if ($method === 'POST') {
-    $in      = json_input();
+    $in = json_input();
     csrf_verify_request($in);
 
     $name   = s($in['name'] ?? '', 150);
@@ -65,8 +62,8 @@ if ($method === 'POST') {
     $image  = s($in['image'] ?? '', 255);
     $desc   = s($in['description'] ?? '', 1000);
 
-    if ($name === '')  json_response(['ok' => false, 'error' => 'Name is required'], 400);
-    if ($sku === '')   json_response(['ok' => false, 'error' => 'SKU is required'], 400);
+    if ($name === '') json_response(['ok' => false, 'error' => 'Name is required'], 400);
+    if ($sku === '')  json_response(['ok' => false, 'error' => 'SKU is required'], 400);
 
     try {
         $pdo->beginTransaction();
@@ -101,12 +98,7 @@ if ($method === 'POST') {
     }
 }
 
-/* ============================================================
-   PUT — update stock / price / active / bundle fields
-   Query: ?id=N
-   Body:  any of { stock, price_usd, price_sar, bundle_qty,
-                   bundle_price_usd, bundle_price_sar, is_active }
-   ============================================================ */
+/* PUT — update product / stock */
 if ($method === 'PUT') {
     $id = (int)($_GET['id'] ?? 0);
     if ($id <= 0) json_response(['ok' => false, 'error' => 'Missing product id'], 400);
@@ -114,7 +106,6 @@ if ($method === 'PUT') {
     $in = json_input();
     csrf_verify_request($in);
 
-    /* Confirm the product exists */
     $chk = $pdo->prepare('SELECT id FROM products WHERE id = ? LIMIT 1');
     $chk->execute([$id]);
     if (!$chk->fetch()) json_response(['ok' => false, 'error' => 'Product not found'], 404);
@@ -122,16 +113,15 @@ if ($method === 'PUT') {
     try {
         $pdo->beginTransaction();
 
-        /* --- Product fields --- */
         $fields = [];
         $values = [];
 
-        if (isset($in['price_usd']))         { $fields[] = 'price_usd = ?';         $values[] = max(0, (float)$in['price_usd']); }
-        if (isset($in['price_sar']))         { $fields[] = 'price_sar = ?';         $values[] = max(0, (float)$in['price_sar']); }
-        if (isset($in['bundle_qty']))        { $fields[] = 'bundle_qty = ?';        $values[] = max(1, (int)$in['bundle_qty']); }
-        if (isset($in['bundle_price_usd']))  { $fields[] = 'bundle_price_usd = ?';  $values[] = max(0, (float)$in['bundle_price_usd']); }
-        if (isset($in['bundle_price_sar']))  { $fields[] = 'bundle_price_sar = ?';  $values[] = max(0, (float)$in['bundle_price_sar']); }
-        if (isset($in['is_active']))         { $fields[] = 'is_active = ?';         $values[] = (int)(bool)$in['is_active']; }
+        if (isset($in['price_usd']))        { $fields[] = 'price_usd = ?';        $values[] = max(0, (float)$in['price_usd']); }
+        if (isset($in['price_sar']))        { $fields[] = 'price_sar = ?';        $values[] = max(0, (float)$in['price_sar']); }
+        if (isset($in['bundle_qty']))       { $fields[] = 'bundle_qty = ?';       $values[] = max(1, (int)$in['bundle_qty']); }
+        if (isset($in['bundle_price_usd'])) { $fields[] = 'bundle_price_usd = ?'; $values[] = max(0, (float)$in['bundle_price_usd']); }
+        if (isset($in['bundle_price_sar'])) { $fields[] = 'bundle_price_sar = ?'; $values[] = max(0, (float)$in['bundle_price_sar']); }
+        if (isset($in['is_active']))        { $fields[] = 'is_active = ?';        $values[] = (int)(bool)$in['is_active']; }
 
         if ($fields) {
             $values[] = $id;
@@ -139,7 +129,6 @@ if ($method === 'PUT') {
                 ->execute($values);
         }
 
-        /* --- Inventory stock --- */
         if (isset($in['stock'])) {
             $newStock = max(0, (int)$in['stock']);
             $upsert = $pdo->prepare('
@@ -154,7 +143,6 @@ if ($method === 'PUT') {
 
         security_log('product_updated', ['product_id' => $id]);
 
-        /* Return updated product */
         $q = $pdo->prepare('SELECT p.*, COALESCE(i.stock, 0) AS stock
                             FROM products p
                             LEFT JOIN inventory i ON i.product_id = p.id

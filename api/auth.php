@@ -16,6 +16,9 @@ $pdo    = db();
 if ($action === 'login') {
     require_method('POST');
 
+    $bucketKey = rate_limit_key('admin_login');
+    rate_limit($bucketKey, 5, 900);
+
     $in = json_input();
     $username = s($in['username'] ?? '', 80);
     $password = (string)($in['password'] ?? '');
@@ -38,17 +41,15 @@ if ($action === 'login') {
         json_response(['ok' => false, 'error' => 'Invalid credentials'], 401);
     }
 
-    /* Fresh session ID */
-    session_regenerate_id(true);
+    rate_limit_clear($bucketKey);
 
-    /* Clear stale CSRF token from before login */
+    session_regenerate_id(true);
     unset($_SESSION['csrf_token']);
 
     $_SESSION['admin_id']   = (int)$admin['id'];
     $_SESSION['admin_name'] = $admin['name'];
     $_SESSION['admin_user'] = $admin['username'];
 
-    /* Generate a fresh CSRF token */
     $token = csrf_token();
 
     try {
@@ -79,26 +80,21 @@ if ($action === 'logout') {
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(
-            session_name(), '',
-            time() - 42000,
-            $params['path'], $params['domain'],
-            $params['secure'], $params['httponly']
-        );
+        setcookie(session_name(), '', time() - 42000,
+            $params['path'], $params['domain'], $params['secure'], $params['httponly']);
     }
     session_destroy();
     json_response(['ok' => true]);
 }
 
 /* ============================================================
-   ME — always returns CSRF token when authenticated
+   ME
    ============================================================ */
 if ($action === 'me') {
     if (empty($_SESSION['admin_id'])) {
         json_response(['ok' => true, 'authenticated' => false]);
     }
 
-    /* Ensure a CSRF token exists for this session (generates if missing) */
     $token = csrf_token();
 
     json_response([

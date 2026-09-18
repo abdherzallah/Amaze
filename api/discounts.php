@@ -9,9 +9,7 @@ amaze_session_start();
 $pdo    = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-/* ============================================================
-   Public validation (GET ?code=...&subtotal=...&phone=...)
-   ============================================================ */
+/* Public validation */
 if ($method === 'GET' && isset($_GET['code'])) {
     $code     = strtoupper(s($_GET['code'], 30));
     $subtotal = max(0, (float)($_GET['subtotal'] ?? 0));
@@ -23,7 +21,6 @@ if ($method === 'GET' && isset($_GET['code'])) {
 
     if (!$d) json_response(['ok' => false, 'error' => 'Invalid discount code'], 404);
     if (!$d['is_active']) json_response(['ok' => false, 'error' => 'This code is no longer active'], 400);
-
     if ($d['expires_at'] && strtotime($d['expires_at']) < strtotime(date('Y-m-d'))) {
         json_response(['ok' => false, 'error' => 'This code has expired'], 400);
     }
@@ -52,9 +49,6 @@ if ($method === 'GET' && isset($_GET['code'])) {
     ]);
 }
 
-/* ============================================================
-   Everything below is admin-only
-   ============================================================ */
 require_admin();
 
 if ($method === 'GET') {
@@ -64,6 +58,8 @@ if ($method === 'GET') {
 
 if ($method === 'POST') {
     $in = json_input();
+    csrf_verify_request($in);
+
     $code   = strtoupper(s($in['code'] ?? '', 30));
     $type   = ($in['discount_type'] ?? 'percent') === 'fixed' ? 'fixed' : 'percent';
     $value  = (float)($in['discount_value'] ?? 0);
@@ -95,6 +91,7 @@ if ($method === 'POST') {
 if ($method === 'PUT') {
     $id = (int)($_GET['id'] ?? 0);
     $in = json_input();
+    csrf_verify_request($in);
 
     $fields = [];
     $values = [];
@@ -112,12 +109,15 @@ if ($method === 'PUT') {
     $values[] = $id;
     $pdo->prepare('UPDATE discount_codes SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($values);
 
-    security_log('discount_updated', ['id' => $id, 'fields' => $fields]);
+    security_log('discount_updated', ['id' => $id]);
 
     json_response(['ok' => true]);
 }
 
 if ($method === 'DELETE') {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    csrf_verify($token);
+
     $id = (int)($_GET['id'] ?? 0);
     $pdo->prepare('DELETE FROM discount_codes WHERE id = ?')->execute([$id]);
 

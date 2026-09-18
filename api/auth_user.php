@@ -14,15 +14,18 @@ $pdo    = db();
 if ($action === 'register') {
     require_method('POST');
 
+    $bucketKey = rate_limit_key('user_register');
+    rate_limit($bucketKey, 3, 3600);
+
     $in      = json_input();
     $name    = s($in['name'] ?? '', 150);
     $email   = filter_var($in['email'] ?? '', FILTER_VALIDATE_EMAIL);
     $pass    = (string)($in['password'] ?? '');
     $country = strtoupper(s($in['country'] ?? 'US', 2));
 
-    if (strlen($name) < 2)      json_response(['ok' => false, 'error' => 'Name must be at least 2 characters'], 400);
-    if (!$email)                json_response(['ok' => false, 'error' => 'Invalid email address'], 400);
-    if (strlen($pass) < 6)      json_response(['ok' => false, 'error' => 'Password must be at least 6 characters'], 400);
+    if (strlen($name) < 2) json_response(['ok' => false, 'error' => 'Name must be at least 2 characters'], 400);
+    if (!$email)           json_response(['ok' => false, 'error' => 'Invalid email address'], 400);
+    if (strlen($pass) < 6) json_response(['ok' => false, 'error' => 'Password must be at least 6 characters'], 400);
 
     $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
     $stmt->execute([$email]);
@@ -52,6 +55,9 @@ if ($action === 'register') {
 if ($action === 'login') {
     require_method('POST');
 
+    $bucketKey = rate_limit_key('user_login');
+    rate_limit($bucketKey, 5, 900);
+
     $in    = json_input();
     $email = filter_var($in['email'] ?? '', FILTER_VALIDATE_EMAIL);
     $pass  = (string)($in['password'] ?? '');
@@ -66,6 +72,8 @@ if ($action === 'login') {
         security_log('user_login_failed', ['email' => $email]);
         json_response(['ok' => false, 'error' => 'Invalid email or password'], 401);
     }
+
+    rate_limit_clear($bucketKey);
 
     session_regenerate_id(true);
     unset($_SESSION['csrf_token']);
@@ -101,14 +109,21 @@ if ($action === 'logout') {
     json_response(['ok' => true]);
 }
 
-/* ME */
+/* ME — always returns CSRF token, even for guests */
 if ($action === 'me') {
+    $token = csrf_token();
+
     if (empty($_SESSION['user_id'])) {
-        json_response(['ok' => true, 'authenticated' => false]);
+        json_response([
+            'ok'            => true,
+            'authenticated' => false,
+            'csrf_token'    => $token
+        ]);
     }
     json_response([
         'ok'            => true,
         'authenticated' => true,
+        'csrf_token'    => $token,
         'user'          => [
             'id'      => $_SESSION['user_id'],
             'name'    => $_SESSION['user_name'],
